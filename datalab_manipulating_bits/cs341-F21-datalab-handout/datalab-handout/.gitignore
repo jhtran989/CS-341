@@ -53,6 +53,8 @@ Mkfile.old
 dkms.conf
 
 # Personal Additions
+dummy_test.c
+
 .DS_Store
 *.DS_Store
 .idea

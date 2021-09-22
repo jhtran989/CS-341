@@ -187,6 +187,9 @@ int allEvenBits(int x) {
     int even4 = even8 & (even8 >> 4);
     int even2 = even4 & (even4 >> 2);
 
+//    //FIXME
+//    printf("Even2: %d", even2);
+
     int result = ((even2 >> 1) ^ 1) & even2;
 
     return result & 0x01;
