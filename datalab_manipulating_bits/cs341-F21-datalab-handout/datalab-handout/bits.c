@@ -2,6 +2,8 @@
  * CS:APP Data Lab 
  * 
  * <Please put your name and userid here>
+ * Name: John Tran
+ * Userid: 101821704
  * 
  * bits.c - Source file with your solutions to the Lab.
  *          This is the file you will hand in to your instructor.
@@ -172,8 +174,24 @@ NOTES:
  *   Rating: 2
  */
 int allEvenBits(int x) {
-  return 2;
+    /*
+     * use stacking of bits in reducing powers of 2 to quickly find a
+     * repeated pattern of "01" and bitwise-and at each step
+     * then check the second least significant bit if it's a 0 (map to
+     * a 1) and if the least significant bit is a 1 (match pattern above)
+     *
+     * even-numbered bits start at index 0 (least significant bit)
+     */
+    int even16 = x & (x >> 16);
+    int even8 = even16 & (even16 >> 8);
+    int even4 = even8 & (even8 >> 4);
+    int even2 = even4 & (even4 >> 2);
+
+    int result = ((even2 >> 1) ^ 1) & even2;
+
+    return result & 0x01;
 }
+
 /*
  * bitParity - returns 1 if x contains an odd number of 0's
  *   Examples: bitParity(5) = 0, bitParity(7) = 1
@@ -182,9 +200,10 @@ int allEvenBits(int x) {
  *   Rating: 4
  */
 int bitParity(int x) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * bitXor - x^y using only ~ and & 
  *   Example: bitXor(4, 5) = 1
  *   Legal ops: ~ &
@@ -192,9 +211,10 @@ int bitParity(int x) {
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * leastBitPos - return a mask that marks the position of the
  *               least significant 1 bit. If x == 0, return 0
  *   Example: leastBitPos(96) = 0x20
@@ -203,9 +223,10 @@ int bitXor(int x, int y) {
  *   Rating: 2 
  */
 int leastBitPos(int x) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * replaceByte(x,n,c) - Replace byte n in x with c
  *   Bytes numbered from 0 (LSB) to 3 (MSB)
  *   Examples: replaceByte(0x12345678,1,0xab) = 0x1234ab78
@@ -215,18 +236,20 @@ int leastBitPos(int x) {
  *   Rating: 3
  */
 int replaceByte(int x, int n, int c) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * TMax - return maximum two's complement integer 
  *   Legal ops: ! ~ & ^ | + << >>
  *   Max ops: 4
  *   Rating: 1
  */
 int tmax(void) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * fitsBits - return 1 if x can be represented as an 
  *  n-bit, two's complement integer.
  *   1 <= n <= 32
@@ -236,9 +259,10 @@ int tmax(void) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * divpwr2 - Compute x/(2^n), for 0 <= n <= 30
  *  Round toward zero
  *   Examples: divpwr2(15,1) = 7, divpwr2(-33,4) = -2
@@ -249,7 +273,8 @@ int fitsBits(int x, int n) {
 int divpwr2(int x, int n) {
     return 2;
 }
-/* 
+
+/*
  * isEqual - return 1 if x == y, and 0 otherwise 
  *   Examples: isEqual(5,5) = 1, isEqual(4,5) = 0
  *   Legal ops: ! ~ & ^ | + << >>
@@ -257,9 +282,10 @@ int divpwr2(int x, int n) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * isPositive - return 1 if x > 0, return 0 otherwise 
  *   Example: isPositive(-1) = 0.
  *   Legal ops: ! ~ & ^ | + << >>
@@ -267,9 +293,10 @@ int isEqual(int x, int y) {
  *   Rating: 3
  */
 int isPositive(int x) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * subOK - Determine if can compute x-y without overflow
  *   Example: subOK(0x80000000,0x80000000) = 1,
  *            subOK(0x80000000,0x70000000) = 0, 
@@ -278,8 +305,9 @@ int isPositive(int x) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-  return 2;
+    return 2;
 }
+
 /* howManyBits - return the minimum number of bits required to represent x in
  *             two's complement
  *  Examples: howManyBits(12) = 5
@@ -293,9 +321,10 @@ int subOK(int x, int y) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-  return 0;
+    return 0;
 }
-/* 
+
+/*
  * float_abs - Return bit-level equivalent of absolute value of f for
  *   floating point argument f.
  *   Both the argument and result are passed as unsigned int's, but
@@ -307,9 +336,10 @@ int howManyBits(int x) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-  return 2;
+    return 2;
 }
-/* 
+
+/*
  * float_twice - Return bit-level equivalent of expression 2*f for
  *   floating point argument f.
  *   Both the argument and result are passed as unsigned int's, but
@@ -321,8 +351,9 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-  return 2;
+    return 2;
 }
+
 /*
  * trueFiveEighths - multiplies by 5/8 rounding toward 0,
  *  avoiding errors due to overflow
@@ -333,7 +364,6 @@ unsigned float_twice(unsigned uf) {
  *  Max ops: 25
  *  Rating: 4
  */
-int trueFiveEighths(int x)
-{
+int trueFiveEighths(int x) {
     return 2;
 }
