@@ -214,7 +214,15 @@ int bitParity(int x) {
  *   Rating: 1
  */
 int bitXor(int x, int y) {
-    return 2;
+    /*
+     *  since we can only use the bit operators ~ and &, this hinted the use
+     *  of the bitwise nand operation (not of x and y)
+     *  comparing the truth tables of nand(x, y) and nand(~x, ~y), we found
+     *  that the and of the two operations resulted in our bitwise xor of x
+     *  and y
+     */
+
+    return (~(x & y)) & (~((~x) & (~y)));
 }
 
 /*
