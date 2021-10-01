@@ -252,14 +252,25 @@ int leastBitPos(int x) {
  */
 int replaceByte(int x, int n, int c) {
     int numShifts = n << 3;
-    int numBitsRightPart = (n - 1) << 3;
-    int rightPartMask = (0x1 << numBitsRightPart) + (-1);
+    int mask = 0xff;
+    int adjustedMask = mask << numShifts;
+    x |= adjustedMask;
+    x ^= adjustedMask;
 
-    const int numBitsInt = 32;
+    int adjustedC = c << numShifts;
+
+//    int result = (x >> (numShifts + 8) << 8);
+//    int rightBits = ()
+//
+//    int numBitsRightPart = (n - 1) << 3;
+//    int rightPartMask = (0x1 << numBitsRightPart) + (-1);
+//
+//
+//    const int numBitsInt = 32;
     // int rightPart =
 
 
-    return 2;
+    return x | adjustedC;
 }
 
 /*
