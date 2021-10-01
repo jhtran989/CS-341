@@ -192,7 +192,7 @@ int allEvenBits(int x) {
 
     int result = ~((even2 >> 1) & 1);
 
-    return result & 0x01;
+    return result & even2;
 }
 
 /*
