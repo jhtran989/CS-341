@@ -190,7 +190,7 @@ int allEvenBits(int x) {
 //    //FIXME
 //    printf("Even2: %d", even2);
 
-    int result = ((even2 >> 1) ^ 1) & even2;
+    int result = ((even2 >> 1) ^ 1);
 
     return result & 0x01;
 }
