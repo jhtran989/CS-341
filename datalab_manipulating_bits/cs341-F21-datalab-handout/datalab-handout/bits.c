@@ -187,12 +187,15 @@ int allEvenBits(int x) {
     int even4 = even8 & (even8 >> 4);
     int even2 = even4 & (even4 >> 2);
 
-//    //FIXME
-    printf("Even2: %d", even2);
+    //FIXME
+    //printf("Even2: %d", even2);
 
-    int result = ~((even2 >> 1) & 1);
+    // make sure ONLY even bits are all ones (and not odd bits)
+//    int result = ~((even2 >> 1) & 1);
+//
+//    return result & (even2 & 0x1);
 
-    return result & (even2 & 0x1);
+    return even2 & 0x1;
 }
 
 /*
