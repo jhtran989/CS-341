@@ -251,11 +251,14 @@ int leastBitPos(int x) {
  *   Rating: 3
  */
 int replaceByte(int x, int n, int c) {
+    /**
+     *
+     */
     int numShifts = n << 3;
     int mask = 0xff;
     int adjustedMask = mask << numShifts;
-    x |= adjustedMask;
-    x ^= adjustedMask;
+    x = x | adjustedMask;
+    x = ^ adjustedMask;
 
     int adjustedC = c << numShifts;
 
