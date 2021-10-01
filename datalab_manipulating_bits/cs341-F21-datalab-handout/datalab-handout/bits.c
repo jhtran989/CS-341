@@ -195,6 +195,8 @@ int allEvenBits(int x) {
 //
 //    return result & (even2 & 0x1);
 
+    printf("Test right shift: %d %d\n", 0xffffffff, 0xffffffff >> 1);
+
     return even2 & 0x1;
 }
 
