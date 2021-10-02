@@ -388,14 +388,15 @@ int replaceByte(int x, int n, int c) {
  */
 int tmax(void) {
     /*
-     * 
+     * assume int has length of 31 bits
      */
 
     int maxBitMask = (~0);
-    int shiftedBitMask = maxBitMask >> 1;
-    // int leftMask = ~(shiftedBitMask);
+    int leftBitMask = 1 << 31; // only left most bit has a 1
 
-    return shiftedBitMask;
+    int result = maxBitMask ^ leftBitMask;
+
+    return result;
 }
 
 /*
@@ -448,9 +449,8 @@ int divpwr2(int x, int n) {
     int negativeOffSet = signBit & (!(!fractionalPart));
     int result = rawDivision + negativeOffSet;
 
-    //FIXME
-    printf("Inputs - x: %x, n: %d\n", x, n);
-    printf("Result: %x\n", result);
+//    printf("Inputs - x: %x, n: %d\n", x, n);
+//    printf("Result: %x\n\n", result);
 
     return result;
 }
