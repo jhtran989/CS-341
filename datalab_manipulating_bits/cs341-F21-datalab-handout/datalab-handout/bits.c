@@ -509,9 +509,9 @@ int subOK(int x, int y) {
     int subtract = x + y2complement;
     int subtractSignBit = (subtract >> 31) & 0x01;
 
-    printf("(!signCheck): %d\n", (!signCheck));
-    printf("subtractSignBit: %d\n", subtractSignBit);
-    printf("signToMatch: %d\n\n", signToMatch);
+//    printf("(!signCheck): %d\n", (!signCheck));
+//    printf("subtractSignBit: %d\n", subtractSignBit);
+//    printf("signToMatch: %d\n\n", signToMatch);
 
     // originally had: return (!signCheck) | (subtractSignBit & signToMatch)
     // where a bitwise and was instead -- needed to check if both bits matched
