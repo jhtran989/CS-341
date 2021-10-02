@@ -365,7 +365,6 @@ int replaceByte(int x, int n, int c) {
      * finally, we could just bitwise or this result with our value of c
      * after shifting it in place
      */
-
     int numShifts = n << 3;
     int mask = 0xff;
     int adjustedMask = mask << numShifts;
