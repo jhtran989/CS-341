@@ -509,6 +509,10 @@ int subOK(int x, int y) {
     int subtract = x + y2complement;
     int subtractSignBit = (subtract >> 31) & 0x01;
 
+    printf("(!signCheck): %d\n", (!signCheck));
+    printf("subtractSignBit: %d\n", subtractSignBit);
+    printf("signToMatch: %d\n\n", signToMatch);
+
     return (!signCheck) | (subtractSignBit & signToMatch);
 }
 
