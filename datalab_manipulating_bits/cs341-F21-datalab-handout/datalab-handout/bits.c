@@ -388,7 +388,7 @@ int replaceByte(int x, int n, int c) {
  */
 int tmax(void) {
     /*
-     * assume int has length of 31 bits
+     * assume int has length of 32 bits
      */
 
     int maxBitMask = (~0);
@@ -463,6 +463,10 @@ int divpwr2(int x, int n) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
+    /*
+     *
+     */
+
     return !(x ^ y);
 }
 
@@ -604,7 +608,19 @@ int howManyBits(int x) {
  *   Rating: 2
  */
 unsigned float_abs(unsigned uf) {
-    return 2;
+    /*
+     * make use of the fact that the sign bit is the most significant bit of uf
+     *
+     * 0 in the sign bit is positive
+     *
+     * assuming an int has a length of 32 bits (4 bytes)
+     */
+
+    int leftBitMask = 1 << 32;
+    int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
+    // significant bit
+
+    return uf & rightBitMask;
 }
 
 /*
@@ -619,7 +635,16 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-    return 2;
+    int leftBitMask = 1 << 32;
+    int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
+    // significant bit
+
+    int signBit = (1 << 31) & uf;
+    int rawMultiply2 = uf << 1;
+
+    int result = (rawMultiply2 & rightBitMask) | signBit;
+
+    return result;
 }
 
 /*
