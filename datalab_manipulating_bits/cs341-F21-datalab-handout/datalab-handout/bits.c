@@ -411,21 +411,20 @@ int fitsBits(int x, int n) {
     /*
      * check all 0s or 1s to left
      *
-     * assuming an int has a length of 32 bits (4 bytes)
+     * assume C uses arithmetic right shift
+     *
+     * assuming an int has a length of 32 bits (4 bytes) -- explain leftBits
+     *
+     * // don't need to shift n - 1 bits to preserve sign
+    // bit for comparison (NOT true -- need to account for positive numbers)
+     *
+     * subtraction by 1 can be achieved by ~0 + x = x - 1
      */
 
-    int leftBits = x >> n;
-    int mask = 0x01;
-    int shiftedMask = mask << 31;
-    int sign = x & shiftedMask;
+    int leftBits = x >> ((~0) + n); // shift by n - 1 bits
+    int allBitMask = x >> 31;
 
-    int rightBitMask = (~sign) << n;
-
-    printf("x shifted right by 31 bits (test right arithmetic shift): %d\n",
-           x >> 31);
-
-
-    return 2;
+    return !(leftBits ^ allBitMask);
 }
 
 /*
@@ -437,7 +436,14 @@ int fitsBits(int x, int n) {
  *   Rating: 2
  */
 int divpwr2(int x, int n) {
-    return 2;
+    /*
+     *
+     */
+
+    int signBit = (x >> 31) & 0x01;
+    int rawDivision = x >> n;
+
+    return rawDivision + signBit;
 }
 
 /*
@@ -448,7 +454,7 @@ int divpwr2(int x, int n) {
  *   Rating: 2
  */
 int isEqual(int x, int y) {
-    return 2;
+    return !(x ^ y);
 }
 
 /*
@@ -459,7 +465,13 @@ int isEqual(int x, int y) {
  *   Rating: 3
  */
 int isPositive(int x) {
-    return 2;
+    /*
+     *
+     */
+
+    int signBit = (x >> 31) & 0x01;
+
+    return !signBit & !(!x);
 }
 
 /*
@@ -471,7 +483,24 @@ int isPositive(int x) {
  *   Rating: 3
  */
 int subOK(int x, int y) {
-    return 2;
+    /*
+     * 2s complement addition
+     *
+     * explain subtractSignBit
+     */
+
+    int y2complement = (~y) + 1;
+
+    int xSignBit = (x >> 31) & 0x01;
+    int ySignBit = (y >> 31) & 0x01;
+
+    int signCheck = xSignBit ^ ySignBit;
+    int signToMatch = ySignBit;
+
+    int subtract = x + y2complement;
+    int subtractSignBit = (subtract >> 31) & 0x01;
+
+    return !signCheck | (subtractSignBit & signToMatch);
 }
 
 /* howManyBits - return the minimum number of bits required to represent x in
