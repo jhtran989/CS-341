@@ -624,11 +624,18 @@ unsigned float_abs(unsigned uf) {
     int exponentBitMask = (0x1 << exponentLength) - 1;
     int exponentPart = uf & (exponentBitMask << fractionLength);
 
-    int fractionBitMask = (0x1 << fractionLength) - 1;
-    int fractionPart = uf & fractionBitMask;
+//    int fractionBitMask = (0x1 << fractionLength) - 1;
+//    int fractionPart = uf & fractionBitMask;
+
+//    if (((exponentPart >> fractionLength) == exponentBitMask)
+//        && fractionPart != 0) {
+//        return uf;
+//    }
+
+    int fractionCondition = uf << (32 - fractionLength);
 
     if (((exponentPart >> fractionLength) == exponentBitMask)
-        && fractionPart != 0) {
+        && fractionCondition != 0) {
         return uf;
     }
 
