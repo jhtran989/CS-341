@@ -166,6 +166,7 @@ NOTES:
    synchronized with ISO/IEC 10646:2014, plus Amendment 1 (published
    2015-05-15).  */
 /* We do not support C11 <threads.h>.  */
+
 /* 
  * allEvenBits - return 1 if all even-numbered bits in word set to 1
  *   Examples allEvenBits(0xFFFFFFFE) = 0, allEvenBits(0x55555555) = 1
@@ -176,24 +177,28 @@ NOTES:
 int allEvenBits(int x) {
     /*
      * use stacking of bits in reducing powers of 2 to quickly find a
-     * repeated pattern of "01" and bitwise-and at each step
-     * then check the second least significant bit if it's a 0 (map to
-     * a 1) and if the least significant bit is a 1 (match pattern above)
+     * repeated pattern of "01" and bitwise and at each step -- basically
+     * bitwise and the first half of x with the second half and keeping track
+     * if every other bit starting at the least significant bit (see
+     * at the end of the comment) is a 1
+     *
+     * the only way for a 1 to persist in the least significant bit after
+     * each step is for every other bit starting at the least significant bit
+     * to be a 1 (if there is even a single bit along the steps where there
+     * is a 0 bit, then the bitwise and would propagate the 0 down the steps
+     * to the final two bits since any bit anded with 0 is 0)
+     *
+     * since we just need to look at every other bit starting at the least
+     * significant bit (see below), we bitwise and it with the mask 0x01 at
+     * the end to make sure that bit is a 1 after the successive bitwise ands
      *
      * even-numbered bits start at index 0 (least significant bit)
      */
+
     int even16 = x & (x >> 16);
     int even8 = even16 & (even16 >> 8);
     int even4 = even8 & (even8 >> 4);
     int even2 = even4 & (even4 >> 2);
-
-    //FIXME
-    //printf("Even2: %d", even2);
-
-    // make sure ONLY even bits are all ones (and not odd bits)
-//    int result = ~((even2 >> 1) & 1);
-//
-//    return result & (even2 & 0x1);
 
     return even2 & 0x1;
 }
@@ -206,7 +211,40 @@ int allEvenBits(int x) {
  *   Rating: 4
  */
 int bitParity(int x) {
-    return 2;
+    /*
+     * stacking of bits (as with the allEvenBits() function above) in reducing
+     * powers of 2 to quickly find if there's an odd number of 0s -- stepping
+     * through the algorithm, the first 16 bits of x are compared with the
+     * last 16 bits of x (shifted towards the least significant bit for
+     * easier checking at the end) and bitwise xor-ed together
+     *
+     * this results in a 0 if both bits are 0 or 1 (we don't care about two
+     * 1s since we're just looking at the number of 0s, and two 0s is even,
+     * so can safely ignore it -- basically results in (mod 2) arithmetic
+     * with the number of 0s at the end)
+     *
+     * otherwise, this results in a 1 if there is a pairing of a 0 and a 1
+     * (one each) and keeps track of a single 0 present (stored as a 1)
+     * in each subsequent groupings (split into two groups), the first half
+     * is bitwise xor-ed together with the second half, keeping track if there
+     * is a single 0 in each bit (e.g., 0000 -> 00 -> 0; 1000 -> 10 -> 1)
+     *
+     * this continues until all bits in x are checked and the result stored
+     * in the least significant bit (since left logical shifts are used) as
+     * a 0 if there is effectively an even number of 0s (including no 0s) or
+     * a 1 (a 1 persists in the successive xor operations of the first and
+     * second half if 1 is in any of the bits in the previous xor operation,
+     * and it is xor-ed with a 0 all the way to the final two bit comparison
+     * -- meaning that the 0s are a result of encountering an even number of
+     * 0s along the way)
+     */
+    int parity16 = x ^ (x >> 16);
+    int parity8 = parity16 ^ (parity16 >> 8);
+    int parity4 = parity8 ^ (parity8 >> 4);
+    int parity2 = parity4 ^ (parity4 >> 2);
+    int parity1 = parity2 ^ (parity2 >> 1);
+
+    return parity1 & 0x01;
 }
 
 /*
@@ -220,6 +258,7 @@ int bitXor(int x, int y) {
     /*
      *  since we can only use the bit operators ~ and &, this hinted the use
      *  of the bitwise nand operation (not of x and y)
+     *
      *  comparing the truth tables of nand(x, y) and nand(~x, ~y), we found
      *  that the and of the two operations resulted in our bitwise xor of x
      *  and y
@@ -237,8 +276,53 @@ int bitXor(int x, int y) {
  *   Rating: 2 
  */
 int leastBitPos(int x) {
+    /*
+     * if we take advantage of the bitwise complement of x, then we know the
+     * result when this is bitwise and with the original x should be 0
+     *
+     * however, we can just add 1 to the bitwise complement of x before doing
+     * the bitwise and with x to make sure the result is not 0 anymore -- we
+     * can prove that one bit will be 1 (our desired mask)
+     *
+     * the best way is to illustrate this with some examples (in binary
+     * notation):
+     *
+     * x = 0001
+     * (~x) + 1 = 1110 + 1 = 1111
+     * bitwise and -> 0001
+     *
+     * we can see from the above example that if the least significant is 1
+     * (regardless of the other bits since the complement would have a 0 in
+     * the least significant bit and adding a 1 would only change this bit to
+     * a 1, leaving the other bits unchanged), then the bitwise and would
+     * correctly determine the least significant bit 1 bit as the least
+     * significant bit
+     *
+     * now, let's look at another example where the least significant 1 bit
+     * is not the least significant bit:
+     *
+     * x = 0110 1100
+     * (~x) + 1 = 1001 0011 + 1 = 1001 0100
+     * bitwise and -> 0000 0100
+     *
+     * this example is a little more illuminating (more bits to work with and
+     * more than one bit contains a 1) as we can see that (~x) + 1 will only
+     * change bits up to the least significant 1 bit position in the
+     * complement and "restore" the 0s from the original x up to position
+     * right before the least significant 1 bit position
+     *
+     * basically, adding 1 to ~x would match the bits of x up to the least
+     * significant 1 bit of x (which means a 1 followed by any number of 0s)
+     * while preserving the rest of the complement
+     *
+     * when we take the bitwise and, the bits to the left would be zeroed out
+     * since the complement is preserved, and we are just left with a 1 bit
+     * at the least significant 1 bit of x with zeroes following after it
+     * (since zeroes are supposed to follow the least significant 1 bit by
+     * definition), giving us our desired mask
+     */
 
-    return 2;
+    return x & ((~x) + 1);
 }
 
 /*
@@ -251,9 +335,37 @@ int leastBitPos(int x) {
  *   Rating: 3
  */
 int replaceByte(int x, int n, int c) {
-    /**
+    /*
+     * originally, I had thought of shifting x so there would be 0s at byte n
+     * (where c should be). However, I couldn't find a way to get the right
+     * bits of x (below byte n) easily without subtraction -- need a bit
+     * mask (some consecutive bits of all 1s)
      *
+     * so, we came up with an easier way to just zero out byte n in x without
+     * needed to shift x
+     *
+     * before we begin, it is important to note there are 8 bits in one byte
+     * and to get the appropriate number of bits to shift given n (in bytes),
+     * we can just multiply n by 8 (equivalent to a left shift of 3 -- 2^3 =
+     * 8 since each left shift is the same thing as multiplying by 2)
+     *
+     * first, since we are given that we only need to change one byte of x, a
+     * bit mask (all 1s) equal to the length of one byte was created and
+     * shifted to byte n (overlap with byte n in x)
+     *
+     * then, we need to find a way to zero out byte n in x with our bit mask
+     * -- we found a clever way by first bitwise or-ing it with x (only byte
+     * n is affected since the mask has zeros elsewhere) to make byte n in x
+     * all 1s
+     *
+     * to convert those 1s in byte n of x to 0s, we know that 1 xor 1 is just
+     * 0, and we could use the same mask to make this happen (again, the
+     * other bits are unaffected since 0 ^ a = a for any bit value a)
+     *
+     * finally, we could just bitwise or this result with our value of c
+     * after shifting it in place
      */
+
     int numShifts = n << 3;
     int mask = 0xff;
     int adjustedMask = mask << numShifts;
@@ -261,17 +373,6 @@ int replaceByte(int x, int n, int c) {
     x = x ^ adjustedMask;
 
     int adjustedC = c << numShifts;
-
-//    int result = (x >> (numShifts + 8) << 8);
-//    int rightBits = ()
-//
-//    int numBitsRightPart = (n - 1) << 3;
-//    int rightPartMask = (0x1 << numBitsRightPart) + (-1);
-//
-//
-//    const int numBitsInt = 32;
-    // int rightPart =
-
 
     return x | adjustedC;
 }
@@ -283,7 +384,14 @@ int replaceByte(int x, int n, int c) {
  *   Rating: 1
  */
 int tmax(void) {
-    return 2;
+    /*
+     * 
+     */
+    int maxBitMask = (~0);
+    int shiftedBitMask = maxBitMask >> 1;
+    int leftMask = ~(shiftedBitMask);
+
+    return leftMask;
 }
 
 /*

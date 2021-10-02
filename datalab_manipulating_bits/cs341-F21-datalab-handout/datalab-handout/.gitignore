@@ -54,6 +54,7 @@ dkms.conf
 
 # Personal Additions
 dummy_test.c
+old_code.c
 personal_test
 
 .DS_Store
