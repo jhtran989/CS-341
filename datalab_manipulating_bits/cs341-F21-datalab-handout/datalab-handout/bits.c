@@ -613,8 +613,24 @@ unsigned float_abs(unsigned uf) {
      *
      * 0 in the sign bit is positive
      *
+     * check if uf is NaN (just return the input if so)
+     *
      * assuming an int has a length of 32 bits (4 bytes)
      */
+
+    int exponentLength = 8;
+    int fractionLength = 23;
+
+    int exponentBitMask = (0x1 << exponentLength) - 1;
+    int exponentPart = uf & (exponentBitMask << fractionLength);
+
+    int fractionBitMask = (0x1 << fractionLength) - 1;
+    int fractionPart = uf & fractionBitMask;
+
+    if (((exponentPart >> fractionLength) == exponentBitMask)
+        && fractionPart != 0) {
+        return uf;
+    }
 
     int leftBitMask = 1 << 31;
     int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
