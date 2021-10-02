@@ -446,8 +446,13 @@ int divpwr2(int x, int n) {
     int fractionalPart = fractionalMask & x;
 
     int negativeOffSet = signBit & (!(!fractionalPart));
+    int result = rawDivision + negativeOffSet;
 
-    return rawDivision + negativeOffSet;
+    //FIXME
+    printf("Inputs - x: %x, n: %d\n", x, n);
+    printf("Result: %x\n", result);
+
+    return result;
 }
 
 /*
