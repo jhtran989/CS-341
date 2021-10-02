@@ -366,15 +366,17 @@ int replaceByte(int x, int n, int c) {
      * after shifting it in place
      */
 
+    // IMPORTANT: all variables must be declared first before referencing
+    // them afterwards (i.e. before line 377 where result is referenced)
     int numShifts = n << 3;
     int mask = 0xff;
     int adjustedMask = mask << numShifts;
+    int shiftedC = c << numShifts;
+
     int result = x | adjustedMask;
     result = result ^ adjustedMask;
 
-    //int shiftedC = c << numShifts;
-
-    return result | (c << numShifts);
+    return result | shiftedC;
 }
 
 /*
