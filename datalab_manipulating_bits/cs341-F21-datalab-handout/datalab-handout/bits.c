@@ -513,7 +513,9 @@ int subOK(int x, int y) {
     printf("subtractSignBit: %d\n", subtractSignBit);
     printf("signToMatch: %d\n\n", signToMatch);
 
-    return (!signCheck) | (subtractSignBit & signToMatch);
+    // originally had: return (!signCheck) | (subtractSignBit & signToMatch)
+    // where a bitwise and was instead -- needed to check if both bits matched
+    return (!signCheck) | (!(subtractSignBit ^ signToMatch));
 }
 
 /* howManyBits - return the minimum number of bits required to represent x in
