@@ -531,7 +531,56 @@ int subOK(int x, int y) {
  *  Rating: 4
  */
 int howManyBits(int x) {
-    return 0;
+    /*
+     * binary search
+     *
+     * 1 in left half, 0 in right half (checkHalf[16, 8, 4, 2] where [16, 8,
+     * 4, 2] refers to the variables defined below with the number inside the
+     * [] represents the length of the halves we're looking at
+     *
+     * number is appended after the positiveX (positiveX[16, 8, 4, 2] after
+     * the respective searches were completed to differentiate the length of
+     * x we are now looking at
+     *
+     * also, to avoid having to declare all the
+     * variables at the beginning if we used positiveX through all the
+     * searches) -- stricter form of C declarations from dlc
+     *
+     * need to add 1 at the end since we made sure to convert x to a positive
+     * form (if needed when x is negative) and an extra bit is needed to
+     * carry the sign bit (e.g., for the case of 7 -- 111 -- we need four
+     * bits instead of 3 to store it as a signed int -> 0111)
+     *
+     * REMOVE
+     * use fitsBits() from above...for all 32 bits
+     */
+
+    int signBitMask = x >> 31; // all 0s or all 1s depending on sign of x
+    int positiveX = (x & (~signBitMask)) | ((~x) & signBitMask);
+
+    int checkHalf16 = !(!(positiveX >> 16));
+    int atLeast16Bits = checkHalf16 << 4;
+    int positiveX16 = positiveX >> atLeast16Bits;
+
+    int checkHalf8 = !(!(positiveX16 >> 8));
+    int atLeast8Bits = checkHalf8 << 3;
+    int positiveX8 = positiveX16 >> atLeast8Bits;
+
+    int checkHalf4 = !(!(positiveX8 >> 4));
+    int atLeast4Bits = checkHalf4 << 2;
+    int positiveX4 = positiveX8 >> atLeast4Bits;
+
+    int checkHalf2 = !(!(positiveX4 >> 2));
+    int atLeast2Bits = checkHalf2 << 1;
+    int positiveX2 = positiveX4 >> atLeast2Bits;
+
+    int checkHalf1 = !(!(positiveX2 >> 1));
+    int atLeast1Bits = checkHalf1 << 0;
+
+    int result = atLeast16Bits + atLeast8Bits + atLeast4Bits + atLeast2Bits
+            + atLeast1Bits + 1;
+
+    return result;
 }
 
 /*
