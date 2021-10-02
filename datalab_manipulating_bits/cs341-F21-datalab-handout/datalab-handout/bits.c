@@ -620,7 +620,8 @@ unsigned float_abs(unsigned uf) {
     int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
-    //printf("float input: %d\n\n", uf);
+    printf("float input: %x\n", uf);
+    printf("output absolute value: %x\n\n", uf & rightBitMask);
 
     return uf & rightBitMask;
 }
