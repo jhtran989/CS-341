@@ -369,13 +369,12 @@ int replaceByte(int x, int n, int c) {
     int numShifts = n << 3;
     int mask = 0xff;
     int adjustedMask = mask << numShifts;
-    x = x | adjustedMask;
-    x = x ^ adjustedMask;
+    int result = x | adjustedMask;
+    result = result ^ adjustedMask;
 
     int shiftedC = c << numShifts;
-    int dummy = shiftedC;
 
-    return x | dummy;
+    return result | shiftedC;
 }
 
 /*
