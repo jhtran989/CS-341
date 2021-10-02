@@ -551,6 +551,12 @@ int howManyBits(int x) {
      * carry the sign bit (e.g., for the case of 7 -- 111 -- we need four
      * bits instead of 3 to store it as a signed int -> 0111)
      *
+     * finalBit is for checking if our last bit is a 1 (no more cutting our
+     * current sequence of x in halves and occurs when the most significant 1
+     * bit is in the 4th bit position (3rd index) in the most significant
+     * byte position of x) -- e.g., 1001 -> 10 -> 1, or when the most
+     * significant byte of x is at least 0x8
+     *
      * REMOVE
      * use fitsBits() from above...for all 32 bits
      */
@@ -576,9 +582,12 @@ int howManyBits(int x) {
 
     int checkHalf1 = !(!(positiveX2 >> 1));
     int atLeast1Bits = checkHalf1 << 0;
+    int positiveX1 = positiveX2 >> atLeast1Bits;
+
+    int finalBit = positiveX1 & 0x01;
 
     int result = atLeast16Bits + atLeast8Bits + atLeast4Bits + atLeast2Bits
-            + atLeast1Bits + 1;
+            + atLeast1Bits + finalBit + 1;
 
     return result;
 }
