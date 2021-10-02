@@ -616,7 +616,7 @@ unsigned float_abs(unsigned uf) {
      * assuming an int has a length of 32 bits (4 bytes)
      */
 
-    int leftBitMask = 1 << 32;
+    int leftBitMask = 1 << 31;
     int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
@@ -635,11 +635,11 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
-    int leftBitMask = 1 << 32;
+    int leftBitMask = 1 << 31;
     int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
-    int signBit = (1 << 31) & uf;
+    int signBit = leftBitMask & uf;
     int rawMultiply2 = uf << 1;
 
     int result = (rawMultiply2 & rightBitMask) | signBit;
