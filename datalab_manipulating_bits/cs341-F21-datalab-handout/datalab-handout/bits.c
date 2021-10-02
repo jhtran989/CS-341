@@ -443,7 +443,9 @@ int divpwr2(int x, int n) {
     int signBit = (x >> 31) & 0x01;
     int rawDivision = x >> n;
 
-    return rawDivision + signBit;
+    int negativeOffSet = signBit & n;
+
+    return rawDivision + negativeOffSet;
 }
 
 /*
@@ -500,7 +502,7 @@ int subOK(int x, int y) {
     int subtract = x + y2complement;
     int subtractSignBit = (subtract >> 31) & 0x01;
 
-    return !signCheck | (subtractSignBit & signToMatch);
+    return (!signCheck) | (subtractSignBit & signToMatch);
 }
 
 /* howManyBits - return the minimum number of bits required to represent x in
