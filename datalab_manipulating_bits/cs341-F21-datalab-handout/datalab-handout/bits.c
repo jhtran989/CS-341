@@ -238,6 +238,7 @@ int bitParity(int x) {
      * -- meaning that the 0s are a result of encountering an even number of
      * 0s along the way)
      */
+
     int parity16 = x ^ (x >> 16);
     int parity8 = parity16 ^ (parity16 >> 8);
     int parity4 = parity8 ^ (parity8 >> 4);
@@ -392,9 +393,9 @@ int tmax(void) {
 
     int maxBitMask = (~0);
     int shiftedBitMask = maxBitMask >> 1;
-    int leftMask = ~(shiftedBitMask);
+    // int leftMask = ~(shiftedBitMask);
 
-    return leftMask;
+    return shiftedBitMask;
 }
 
 /*
