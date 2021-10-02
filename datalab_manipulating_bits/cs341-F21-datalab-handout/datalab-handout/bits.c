@@ -395,9 +395,6 @@ int tmax(void) {
     int shiftedBitMask = maxBitMask >> 1;
     // int leftMask = ~(shiftedBitMask);
 
-    printf("something\n");
-    printf("Final answer: %d\n", shiftedBitMask);
-
     return shiftedBitMask;
 }
 
@@ -411,6 +408,23 @@ int tmax(void) {
  *   Rating: 2
  */
 int fitsBits(int x, int n) {
+    /*
+     * check all 0s or 1s to left
+     *
+     * assuming an int has a length of 32 bits (4 bytes)
+     */
+
+    int leftBits = x >> n;
+    int mask = 0x01;
+    int shiftedMask = mask << 31;
+    int sign = x & shiftedMask;
+
+    int rightBitMask = (~sign) << n;
+
+    printf("x shifted right by 31 bits (test right arithmetic shift): %d\n",
+           x >> 31);
+
+
     return 2;
 }
 
