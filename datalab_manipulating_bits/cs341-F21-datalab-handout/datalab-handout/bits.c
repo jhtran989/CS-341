@@ -371,7 +371,6 @@ int replaceByte(int x, int n, int c) {
     int adjustedMask = mask << numShifts;
     int result = x | adjustedMask;
     result = result ^ adjustedMask;
-
     int shiftedC = c << numShifts;
 
     return result | shiftedC;
@@ -387,6 +386,7 @@ int tmax(void) {
     /*
      * 
      */
+
     int maxBitMask = (~0);
     int shiftedBitMask = maxBitMask >> 1;
     int leftMask = ~(shiftedBitMask);
