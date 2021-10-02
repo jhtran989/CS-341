@@ -395,6 +395,7 @@ int tmax(void) {
     int shiftedBitMask = maxBitMask >> 1;
     // int leftMask = ~(shiftedBitMask);
 
+    printf("something\n");
     printf("Final answer: %d\n", shiftedBitMask);
 
     return shiftedBitMask;
