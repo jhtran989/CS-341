@@ -504,7 +504,7 @@ int subOK(int x, int y) {
     int ySignBit = (y >> 31) & 0x01;
 
     int signCheck = xSignBit ^ ySignBit;
-    int signToMatch = ySignBit;
+    int signToMatch = xSignBit;
 
     int subtract = x + y2complement;
     int subtractSignBit = (subtract >> 31) & 0x01;
