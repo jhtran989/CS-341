@@ -442,9 +442,10 @@ int divpwr2(int x, int n) {
 
     int signBit = (x >> 31) & 0x01;
     int rawDivision = x >> n;
-    int lastBitDivision = (x >> ((~0) + n)) & 0x01;
+    int fractionalMask = (1 << n) + (~0);
+    int fractionalPart = fractionalMask & x;
 
-    int negativeOffSet = signBit & n & lastBitDivision;
+    int negativeOffSet = signBit & (!(!fractionalPart));
 
     return rawDivision + negativeOffSet;
 }
