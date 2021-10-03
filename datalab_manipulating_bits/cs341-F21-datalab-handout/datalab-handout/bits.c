@@ -689,7 +689,7 @@ unsigned float_abs(unsigned uf) {
         return uf;
     }
 
-    leftBitMask = 0x800000000; // changed to hardcode 0x800000000
+    leftBitMask = 1 << 31; // changed to hardcode 0x800000000
     rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
@@ -718,10 +718,12 @@ unsigned float_twice(unsigned uf) {
     int exponentLength = 8;
     int fractionLength = 23;
 
-    int exponentBitMask = (0x1 << exponentLength) - 1;
+    // hardcode to 0xff
+    int exponentBitMask = 0xff;
     int exponentPart = uf & (exponentBitMask << fractionLength);
 
-    int fractionCondition = uf << (32 - fractionLength);
+    // change 32 - fractionLength = 9
+    int fractionCondition = uf << 9;
 
     // moved declarations before if statement
     int leftBitMask;
