@@ -738,9 +738,12 @@ unsigned float_twice(unsigned uf) {
     unsigned int result;
     unsigned int zeroExponentFlag = 0x00;
 
-    if (((exponentPart >> fractionLength) == exponentBitMask)
-        && (fractionCondition != 0)) {
-        printf("current exponent: %x\n", exponentPart >> fractionLength);
+//    printf("current exponent: %x\n", exponentPart >> fractionLength);
+//    printf("fractional condition: %x\n", fractionCondition);
+
+    // remove fractional condition -- should also apply to +- infinity
+    if (((exponentPart >> fractionLength) == exponentBitMask)) {
+        //printf("current exponent: %x\n", exponentPart >> fractionLength);
         return uf;
     }
 
