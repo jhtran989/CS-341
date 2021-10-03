@@ -755,6 +755,10 @@ unsigned float_twice(unsigned uf) {
         newExponent = exponentPart + (1 << fractionLength);
     }
 
+    rawMultiply2 = uf;
+    rawMultiply2 = rawMultiply2 | exponentBitMask;
+    rawMultiply2 = rawMultiply2 ^ exponentBitMask;
+
     rawMultiply2 = uf | newExponent; // just add 1 to
     // the exponent (base 2)
 
