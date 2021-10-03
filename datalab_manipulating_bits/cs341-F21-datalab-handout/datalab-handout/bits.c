@@ -677,13 +677,17 @@ unsigned float_abs(unsigned uf) {
 //        return uf;
 //    }
 
+    // moved declarations before if statement
+    int leftBitMask;
+    int rightBitMask;
+
     if ((exponentPart == 0x7fc0000)
         && fractionCondition != 0) {
         return uf;
     }
 
-    int leftBitMask = 1 << 31;
-    int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
+    leftBitMask = 1 << 31;
+    rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
 //    printf("float input: %x\n", uf);
@@ -716,23 +720,31 @@ unsigned float_twice(unsigned uf) {
 
     int fractionCondition = uf << (32 - fractionLength);
 
+    // moved declarations before if statement
+    int leftBitMask;
+    int rightBitMask;
+    int signBit;
+    int newExponent;
+    int rawMultiply2;
+    int result;
+
     if ((exponentPart == 0x7fc0000)
         && fractionCondition != 0) {
         return uf;
     }
 
-    int leftBitMask = 1 << 31;
-    int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
+    leftBitMask = 1 << 31;
+    rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
-    int signBit = leftBitMask & uf;
+    signBit = leftBitMask & uf;
 
     //int rawMultiply2 = uf << 1;
-    int newExponent = exponentPart + (1 << fractionLength);
-    int rawMultiply2 = uf | newExponent; // just add 1 to
+    newExponent = exponentPart + (1 << fractionLength);
+    rawMultiply2 = uf | newExponent; // just add 1 to
     // the exponent (base 2)
 
-    int result = (rawMultiply2 & rightBitMask) | signBit;
+    result = (rawMultiply2 & rightBitMask) | signBit;
 
     return result;
 }
