@@ -738,6 +738,10 @@ unsigned float_twice(unsigned uf) {
     unsigned int result;
     unsigned int zeroExponentFlag = 0x00;
 
+    if (fractionCondition != 0) {
+        printf("current exponent: %x\n", exponentPart >> fractionLength);
+    }
+
     if (((exponentPart >> fractionLength) == exponentBitMask)
         && (fractionCondition != 0)) {
         printf("current exponent: %x\n", exponentPart >> fractionLength);
