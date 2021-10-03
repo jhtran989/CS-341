@@ -799,5 +799,8 @@ int trueFiveEighths(int x) {
     int xHalf = x >> 1;
     int xEigth = x >> 3;
 
-    return xHalf + xEigth;
+    int bitHalf = x & 0x01;
+    int bitEigth = (x >> 2) & 0x01;
+
+    return xHalf + xEigth + (bitHalf & bitEigth);
 }
