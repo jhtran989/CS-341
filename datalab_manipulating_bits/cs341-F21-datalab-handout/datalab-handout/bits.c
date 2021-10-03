@@ -738,7 +738,7 @@ unsigned float_twice(unsigned uf) {
     unsigned int result;
     unsigned int zeroExponentFlag = 0x00;
 
-    if ((exponentPart == 0x7fc0000)
+    if (((exponentPart >> fractionLength) == exponentBitMask)
         && fractionCondition != 0) {
         return uf;
     }
