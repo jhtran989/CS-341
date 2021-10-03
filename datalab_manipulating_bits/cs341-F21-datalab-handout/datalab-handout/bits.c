@@ -756,15 +756,11 @@ unsigned float_twice(unsigned uf) {
 //    printf("sign bit: %d\n", !!signBit);
 //    printf("exponent part: %x\n", exponentPart);
 
-    //int rawMultiply2 = uf << 1;
     if (exponentPart != 0) {
         newExponent = exponentPart + (1 << fractionLength);
     } else {
         zeroExponentFlag = 0x01;
     }
-//    else if (fractionCondition != 0) {
-//        rawMultiply2 = rawMultiply2 << 1;
-//    }
 
     rawMultiply2 = rawMultiply2 | shiftedExponentBitMask;
     rawMultiply2 = rawMultiply2 ^ shiftedExponentBitMask;
@@ -796,5 +792,12 @@ unsigned float_twice(unsigned uf) {
  *  Rating: 4
  */
 int trueFiveEighths(int x) {
-    return 2;
+    /*
+     * split 5/8 into 1/2 + 1/8
+     */
+
+    int xHalf = x >> 1;
+    int xEigth = x >> 3;
+
+    return xHalf + xEigth;
 }
