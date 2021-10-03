@@ -758,6 +758,9 @@ unsigned float_twice(unsigned uf) {
     rawMultiply2 = uf | newExponent; // just add 1 to
     // the exponent (base 2)
 
+    printf("new exponent: %d\n", newExponent);
+    printf("raw multiply: %x\n", rawMultiply2);
+
     result = (rawMultiply2 & rightBitMask) | signBit;
 
     return result;
