@@ -732,7 +732,7 @@ unsigned float_twice(unsigned uf) {
     unsigned int leftBitMask;
     unsigned int rightBitMask;
     unsigned int signBit;
-    unsigned int newExponent;
+    unsigned int newExponent = 0;
     unsigned int rawMultiply2;
     unsigned int result;
 
@@ -751,7 +751,10 @@ unsigned float_twice(unsigned uf) {
     printf("exponent part: %x\n", exponentPart);
 
     //int rawMultiply2 = uf << 1;
-    newExponent = exponentPart + (1 << fractionLength);
+    if (exponentPart != 0) {
+        newExponent = exponentPart + (1 << fractionLength);
+    }
+
     rawMultiply2 = uf | newExponent; // just add 1 to
     // the exponent (base 2)
 
