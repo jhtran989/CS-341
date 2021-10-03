@@ -734,7 +734,7 @@ unsigned float_twice(unsigned uf) {
     unsigned int rightBitMask;
     unsigned int signBit;
     unsigned int newExponent = 0;
-    unsigned int rawMultiply2;
+    unsigned int rawMultiply2 = uf;
     unsigned int result;
 
     if ((exponentPart == 0x7fc0000)
@@ -754,9 +754,10 @@ unsigned float_twice(unsigned uf) {
     //int rawMultiply2 = uf << 1;
     if (exponentPart != 0) {
         newExponent = exponentPart + (1 << fractionLength);
+    } else if (fractionCondition != 0) {
+        rawMultiply2 = rawMultiply2 << 1;
     }
 
-    rawMultiply2 = uf;
     rawMultiply2 = rawMultiply2 | shiftedExponentBitMask;
     rawMultiply2 = rawMultiply2 ^ shiftedExponentBitMask;
 
