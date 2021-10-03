@@ -804,14 +804,17 @@ int trueFiveEighths(int x) {
      * also check case if x is a 1
      *
      * need to consider ALL bit remainders of division by 8
+     *
+     * for half, need to keep track of the least significant bit
+     * for eighth, need to keep track of the last three least significant bits
      */
 
     int xHalf = x >> 1;
     int xEighth = x >> 3;
 
-    int carryHalf = x & 0x01;
+    int carryHalf = x & 0x01; // bit representation of 0000 0001
     //int carryEighth = (x >> 2) & 0x01;
-    int carryEighth = x & 0x03;
+    int carryEighth = x & 0x07; // bit representation of 0000 0111
 
     printf("half: %x\n", xHalf);
     printf("eighth: %x\n", xEighth);
