@@ -802,13 +802,16 @@ int trueFiveEighths(int x) {
      * if halves add together to result in extra addition of 1
      *
      * also check case if x is a 1
+     *
+     * need to consider ALL bit remainders of division by 8
      */
 
     int xHalf = x >> 1;
     int xEighth = x >> 3;
 
     int carryHalf = x & 0x01;
-    int carryEighth = (x >> 2) & 0x01;
+    //int carryEighth = (x >> 2) & 0x01;
+    int carryEighth = x & 0x03;
 
     printf("half: %x\n", xHalf);
     printf("eighth: %x\n", xEighth);
@@ -816,5 +819,5 @@ int trueFiveEighths(int x) {
     printf("eighth carry: %d\n", carryEighth);
 
     //return xHalf + xEighth + (carryHalf & carryEighth);
-    return xHalf + xEighth + (((((x % 2) * 4) + (x % 8))) * 5) / 8;
+    return xHalf + xEighth + (((carryHalf << 2) + carryEighth) >> 3);
 }
