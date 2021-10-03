@@ -718,8 +718,8 @@ unsigned float_twice(unsigned uf) {
      *
      */
 
-    int exponentLength = 8;
-    int fractionLength = 23;
+    unsigned exponentLength = 8;
+    unsigned fractionLength = 23;
 
     // hardcode to 0xff
     unsigned exponentBitMask = 0xff;
@@ -737,10 +737,6 @@ unsigned float_twice(unsigned uf) {
     unsigned int rawMultiply2 = uf;
     unsigned int result;
     unsigned int zeroExponentFlag = 0x00;
-
-    if (fractionCondition != 0) {
-        printf("current exponent: %x\n", exponentPart >> fractionLength);
-    }
 
     if (((exponentPart >> fractionLength) == exponentBitMask)
         && (fractionCondition != 0)) {
