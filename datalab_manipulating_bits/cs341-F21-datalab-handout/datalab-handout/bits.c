@@ -388,11 +388,23 @@ int replaceByte(int x, int n, int c) {
  */
 int tmax(void) {
     /*
-     * assume int has length of 32 bits
+     * we know an int in C has length of 32 bits
+     *
+     * general approach is to get a bit mask of all 1s and bitwise or it with
+     * a bit mask where only the most significant bit (sign bit) is a 1
+     *
+     * since we know that 0 ^ a = a for any given bit a, we can leave 0s to
+     * the right of the right most 1 in the second bit mask to retain the 1s
+     * in those positions in the original mask
+     *
+     * to get the maximum number in two's complement, we just need all 1s
+     * except the most significant bit and to zero that bit, we can bitwise
+     * or it with 1 at that position to get 0
      */
 
     int maxBitMask = (~0);
-    int leftBitMask = 1 << 31; // only left most bit has a 1
+    int leftBitMask = 1 << 31; // only left most bit (most significant bit) has
+    // a 1
 
     int result = maxBitMask ^ leftBitMask;
 
@@ -410,22 +422,36 @@ int tmax(void) {
  */
 int fitsBits(int x, int n) {
     /*
-     * check all 0s or 1s to left
+     * we know that C uses arithmetic right shift and an int has a length of 32
+     * bits (4 bytes)
      *
-     * assume C uses arithmetic right shift
+     * first, we need to check if there's all 0s or 1s to left of the first n-1
+     * bits of x (stored in the leftBits variable)
      *
-     * assuming an int has a length of 32 bits (4 bytes) -- explain leftBits
+     * we need to shift n - 1 bits to preserve the sign bit for comparison
+     * (need to account for positive numbers where the most significant bit
+     * holds the sign, which will be compared with the rest of the bits to
+     * the left)
      *
-     * // don't need to shift n - 1 bits to preserve sign
-    // bit for comparison (NOT true -- need to account for positive numbers)
+     * for a clever trick, subtracting 1 from x can be achieved by
+     * ~0 + x = x - 1
      *
-     * subtraction by 1 can be achieved by ~0 + x = x - 1
+     * the arithmetic right shift will extend the sign bit to fill in the new
+     * bits from right shifting, so the only way that x will fit in n bits is
+     * if all bits to the left of the first n+1 bits of x are either 0s
+     * (positive value) or 1s (negative value)
+     *
+     * to make sure they all match, we can just bitwise xor the two and take
+     * the logical not since the bitwise xor should return 0 if all the bits
+     * match (and remembering to take the logical not to get 1 as our final
+     * output)
      */
 
     int leftBits = x >> ((~0) + n); // shift by n - 1 bits
-    int allBitMask = x >> 31;
+    int signBitMask = x >> 31; // all 1s or all 0s depending on the sign bit
+    // of x
 
-    return !(leftBits ^ allBitMask);
+    return !(leftBits ^ signBitMask);
 }
 
 /*
@@ -438,11 +464,33 @@ int fitsBits(int x, int n) {
  */
 int divpwr2(int x, int n) {
     /*
+     * a condensed algorithm compared to the one in the
+     * trueFiveEighths() function shown below
      *
+     * remember to round towards zero
+     *
+     * for positive values of x, it is pretty simple as we just need to shift x
+     * by n to divide x by 2^n, taking care of any remainders by removing them
+     *
+     * however, the negative values of x will need some more work: since
+     * shifting x will actually round x down instead of to zero, we just need
+     * to add 1 to x to offset the default behavior of rounding down by shifting
+     *
+     * so, we keep track of all the bits that would have been lost by
+     * shifting x by n by creating a mask of all 1s of length n and bitwise
+     * and-ing it with x
+     *
+     * then we just check if the fractional part is nonzero (making sure that
+     * this only applies to negative values by bitwise and-ing with the sign
+     * bit as negative values have a sign bit of 1)
+     *
+     * to get our final result, we just add this offset to the original
+     * division by shifting
      */
 
     int signBit = (x >> 31) & 0x01;
     int rawDivision = x >> n;
+
     int fractionalMask = (1 << n) + (~0);
     int fractionalPart = fractionalMask & x;
 
@@ -464,7 +512,12 @@ int divpwr2(int x, int n) {
  */
 int isEqual(int x, int y) {
     /*
+     * we know an int in C has length of 32 bits
      *
+     * pretty straightforward, but this general approach was used in the
+     * fitsBits() function above -- if all the bits of x and y match, the
+     * bitwise xor should return 0, which we could just take logical not to
+     * get our final output
      */
 
     return !(x ^ y);
@@ -479,7 +532,12 @@ int isEqual(int x, int y) {
  */
 int isPositive(int x) {
     /*
+     * we know an int in C has length of 32 bits
      *
+     * pretty straightforward, but we need to check the sign bit of x (if
+     * it's 0 for positive values) and whether x is not zero (applying two
+     * logical nots to get 1 if x is nonzero and 0 if x is zero), bitwise
+     * and-ing the two conditions together
      */
 
     int signBit = (x >> 31) & 0x01;
@@ -497,12 +555,30 @@ int isPositive(int x) {
  */
 int subOK(int x, int y) {
     /*
-     * 2s complement addition
+     * we know an int in C has length of 32 bits
+     *
+     * the basic approach is to turn the subtraction into 2s complement addition
+     *
+     * first, we need to recognize that the only way that overflow could
+     * occur with subtraction is if x and y have different signs (+ - -
+     * or - - +), so we keep track of the sign bits for x and y
+     *
+     * then we check the condition we just mentioned (different sign bits)
+     * and if the resulting 2s complement addition results in a sign change
+     * with respect to x (since we're doing x-y)
+     *
+     * so, we just compare if the two sign bits (for x and the resulting
+     * computation) are the same
+     *
+     * to produce our final output, we can safely output a 1 if the sign bits
+     * of x and y are the same or the sign bits are not the same for x and y,
+     * but the sign of x and the final subtraction are the same (using the
+     * same structure from the isEqual() and fitsBits() functions above)
      *
      * explain subtractSignBit
      */
 
-    int y2complement = (~y) + 1;
+    int y2complement = (~y) + 1; // 2s complement of y (-> -y)
 
     int xSignBit = (x >> 31) & 0x01;
     int ySignBit = (y >> 31) & 0x01;
@@ -517,8 +593,6 @@ int subOK(int x, int y) {
 //    printf("subtractSignBit: %d\n", subtractSignBit);
 //    printf("signToMatch: %d\n\n", signToMatch);
 
-    // originally had: return (!signCheck) | (subtractSignBit & signToMatch)
-    // where a bitwise and was instead -- needed to check if both bits matched
     return (!signCheck) | (!(subtractSignBit ^ signToMatch));
 }
 
@@ -536,39 +610,39 @@ int subOK(int x, int y) {
  */
 int howManyBits(int x) {
     /*
-     * Instead of going with a more brute-force approach, we decided to
+     * instead of going with a more brute-force approach, we decided to
      * find a way to split our given string x into groups of 2 (as done with
      * a few of the functions above). This time, the approach seemed
      * similar to binary search where each successive split of x into two
      * groups will now depend on whether the left half is nonzero, as will be
-     * explained below.
+     * explained below
      *
-     * First, to consolidate both cases where x is positive (including 0) and
+     * first, to consolidate both cases where x is positive (including 0) and
      * when x is negative, we decided to make sure to bitwise complement x if
      * x is negative (positiveX variable). This makes sure the same procedure
      * is done for both cases since we can't use any conditionals. To prove
      * this is plausible, we can provide a mapping of the negative values of
-     * x with the positive values.
+     * x with the positive values
      *
-     * A simple case when x is three bits long (can be easily generalized to
+     * a simple case when x is three bits long (can be easily generalized to
      * an arbitrary length) -- -4(100) and 3(011), -3(101) and 2 (010),
      * -2(110) and 1(001), and -1(111) and 0(000). Since the interval of
      * possible values [-4, 3] is possible for 3 bits, we can see that the
-     * pairings are just the bitwise complements of each other.
+     * pairings are just the bitwise complements of each other
      *
-     * Mapping used for the halves of x: 1 in left half, 0 in right half --
+     * mapping used for the halves of x: 1 in left half, 0 in right half --
      * stored in checkHalf[16, 8, 4, 2] where [16, 8, 4, 2] refers to the
      * variables defined below with the number inside the [] represents the
      * length of the halves we're looking at
      *
-     * Also, the current half-length is appended after the positiveX variable
+     * also, the current half-length is appended after the positiveX variable
      * (positiveX[16, 8, 4, 2] after the respective searches were completed
      * to differentiate the length of x we are now looking at) to avoid having
      * to declare all the variables at the beginning than if we just used
      * positiveX through all the searches -- stricter form of C declarations
-     * from dlc.
+     * from dlc
      *
-     * To count up all the bits up to the most significant 1 bit in x (for
+     * to count up all the bits up to the most significant 1 bit in x (for
      * positive cases since we converted the negative values to positive
      * values), we just need to keep track of which half we are looking at
      * with each binary search step. For example, if we find that x is in the
@@ -583,20 +657,16 @@ int howManyBits(int x) {
      * depending on the current iteration of the search and which half the
      * most significant 1 bit is found in -- stored in checkHalf[16, 8, 4, 2])
      *
-     * We need to add 1 at the end since we made sure to convert x to a
+     * we need to add 1 at the end since we made sure to convert x to a
      * positive form (if needed when x is negative) and an extra bit is
      * needed to carry the sign bit (e.g., for the case of 7 -- 111 -- we
-     * need four bits instead of 3 to store it as a signed int -> 0111).
+     * need four bits instead of 3 to store it as a signed int -> 0111)
      *
-     * The finalBit variable is for checking if our last bit is a 1 (no more
+     * the finalBit variable is for checking if our last bit is a 1 (no more
      * cutting our current sequence of x in halves and occurs when the most
-     * significant 1
-     * bit is in the 4th bit position (3rd index) in the most significant
-     * byte position of x) -- e.g., 1001 -> 10 -> 1, or when the most
-     * significant byte of x is at least 0x8
-     *
-     * REMOVE
-     * use fitsBits() from above...for all 32 bits
+     * significant 1 bit is in the 4th bit position (3rd index) in the most
+     * significant byte position of x) -- e.g., 1001 -> 10 -> 1, or when the
+     * most significant byte of x is at least 0x8
      */
 
     int signBitMask = x >> 31; // all 0s or all 1s depending on sign of x
@@ -643,17 +713,42 @@ int howManyBits(int x) {
  */
 unsigned float_abs(unsigned uf) {
     /*
-     * make use of the fact that the sign bit is the most significant bit of uf
+     * we know an int in C has length of 32 bits
      *
-     * 0 in the sign bit is positive
+     * we can make use of the fact that the sign bit is the most significant
+     * bit of uf
      *
-     * check if uf is NaN (just return the input if so)
+     * the biggest challenge for this puzzle was to fit everything within the
+     * max ops. -- the value for the exponent bit mask was hardcoded (since the
+     * exponent part is 8 bits long, enough to fit in one byte)
      *
-     * in order to fit in within the max ops., the value for the exponent
-     * part with all 1s (unshifted and masked so all other bits set to 0)
-     * was hardcoded to 0x7fc00000 -- given in the project spec.
+     * the actual procedure to take the absolute value of uf is pretty
+     * straightforward (just turn the sign bit to zero, which can easily be
+     * done by creating a bit mask with all 1s except the sign bit and
+     * bitwise and-ing it with uf)
      *
-     * assuming an int has a length of 32 bits (4 bytes)
+     * however, we need to check if uf is NaN (just return the input if so,
+     * as described in the original description of the function above)
+     *
+     * so, we need to check both the exponent part and the fraction part of
+     * uf before finding out the absolute value of uf
+     *
+     * as discussed above, we can use our exponent bit mask to find the
+     * exponent part by shifting uf so the least significant bit of uf
+     * corresponds with the least significant bit of the exponent and bitwise
+     * and-ing it with the mask (easier comparison with the exponent mask
+     * since the exponent part is already shifted to the same positions as
+     * the mask)
+     *
+     * then since we only need to make sure the fraction part is nonzero, we
+     * can condense trying to find the exact fractional part by just shifting
+     * uf to the left by 9 (8 + 1 for the exponent part and the sign bit,
+     * respectively) since the newly added bits are zeroes, leaving only the
+     * fraction bits for comparison
+     *
+     * if both the exponent part are all 1s and the fraction part is nonzero
+     * (definition of NaN), then we can return early with the argument (as
+     * instructed above)
      */
 
     int fractionLength = 23;
@@ -698,7 +793,32 @@ unsigned float_abs(unsigned uf) {
  */
 unsigned float_twice(unsigned uf) {
     /*
+     * a similar approach to the float_abs() function above, but this time,
+     * we need to also account for the infinities in our early conditional
+     * return (just checking if the exponent part is all 1s for our special
+     * cases of the infinities and NaN)
      *
+     * after that, we need to preserve the sign bit for our final output
+     * since we'll be manipulating the rest of the bits depending on a few
+     * conditionals
+     *
+     * if the exponent part is not zero, then we can multiply uf by just
+     * adding one to the current exponent (making sure to zero out the
+     * exponent part of uf and bitwise or-ing it with uf since the values of
+     * the exponent bits could change drastically with the addition of 1)
+     *
+     * however, if a denormalized value of uf is encountered (exponent part
+     * is zero), then we have to multiply 2 to fraction part instead (for the
+     * case where a 1 is in the most significant bit of the fraction part,
+     * the shift to the left by 1 would be fine since it would cross into the
+     * exponent part, taking care of the multiplication)
+     *
+     * this was kept tracked of by a flag and shifting uf only if uf wasn't
+     * already 0 (since 0 times anything is still 0)
+     *
+     * to get the final result, we just need to bitwise or the sign bit back
+     * into our previous result (zeroing the sign bit of this previous result
+     * beforehand)
      */
 
     unsigned fractionLength = 23;
@@ -775,19 +895,27 @@ unsigned float_twice(unsigned uf) {
  */
 int trueFiveEighths(int x) {
     /*
-     * split 5/8 into 1/2 + 1/8 (fractional powers of 2)
+     * we can recognize that we can split 5/8 into 1/2 + 1/8 (fractional powers
+     * of 2)
      *
-     * case where a 1 occurs in both cases for the 2^-1 place
+     * this is a similar approach to the divpwr2() function above, but
+     * there's a possibility that remainder could add up to an extra 1
+     *
+     * the negative correction is also a little more complicated this time
+     * (described below in the code)
+     *
+     * example case where a 1 occurs in both cases for the 2^-1 place:
      * half: *.1
      * eighth: *.111
      *
      * if halves add together to result in extra addition of 1
      *
-     * also check case if x is a 1
-     *
-     * need to consider ALL bit remainders of division by 8
+     * the most important thing we need to consider are ALL the bit that are
+     * part of the remainder when dividing by 8 (actually, not really as
+     * displayed in the example above)
      *
      * for half, need to keep track of the least significant bit
+     *
      * for eighth, need to keep track of the last three least significant bits
      */
 
@@ -809,6 +937,9 @@ int trueFiveEighths(int x) {
 //    printf("half carry: %d\n", carryHalf);
 //    printf("eighth carry: %d\n", carryEighth);
 
+    // the carries for the half and the eighth (along with the negative
+    // correction) are added in terms of eighths first before converting back
+    // to its original numerical value
     return xHalf + xEighth + (((carryHalf << 2) + carryEighth +
         negativeCorrection) >> 3);
 }
