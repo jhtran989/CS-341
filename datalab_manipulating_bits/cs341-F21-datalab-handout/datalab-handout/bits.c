@@ -656,36 +656,19 @@ unsigned float_abs(unsigned uf) {
      * assuming an int has a length of 32 bits (4 bytes)
      */
 
-    int exponentLength = 8;
     int fractionLength = 23;
 
-    //int maxExponent = 0x7fc0000;
-
-    // hardcode (0x1 << exponentLength) - 1 to 0xff
+    // hardcode ((0x1 << exponentLength) - 1) to 0xff (since the exponent
+    // part is 8 bits)
     int exponentBitMask = 0xff;
-    //int exponentPart = uf & (exponentBitMask << fractionLength);
-    //int exponentPart = uf & maxExponent;
-    int exponentPart = (uf >> 23) & exponentBitMask;
+    unsigned int exponentPart = (uf >> fractionLength) & exponentBitMask;
 
-//    int fractionBitMask = (0x1 << fractionLength) - 1;
-//    int fractionPart = uf & fractionBitMask;
-
-//    if (((exponentPart >> fractionLength) == exponentBitMask)
-//        && fractionPart != 0) {
-//        return uf;
-//    }
-
-    // change 32 - fractionLength to 9
-    int fractionCondition = uf << 9;
-
-//    if (((exponentPart >> fractionLength) == exponentBitMask)
-//        && fractionCondition != 0) {
-//        return uf;
-//    }
+    // change (32 - fractionLength) to 9 -- reduce ops. count by 1
+    unsigned int fractionCondition = uf << 9;
 
     // moved declarations before if statement
-    int leftBitMask;
-    int rightBitMask;
+    unsigned int leftBitMask;
+    unsigned int rightBitMask;
 
     if ((exponentPart == exponentBitMask)
         && fractionCondition != 0) {
@@ -718,7 +701,6 @@ unsigned float_twice(unsigned uf) {
      *
      */
 
-    unsigned exponentLength = 8;
     unsigned fractionLength = 23;
 
     // hardcode to 0xff
@@ -793,7 +775,7 @@ unsigned float_twice(unsigned uf) {
  */
 int trueFiveEighths(int x) {
     /*
-     * split 5/8 into 1/2 + 1/8
+     * split 5/8 into 1/2 + 1/8 (fractional powers of 2)
      *
      * case where a 1 occurs in both cases for the 2^-1 place
      * half: *.1
@@ -827,7 +809,6 @@ int trueFiveEighths(int x) {
 //    printf("half carry: %d\n", carryHalf);
 //    printf("eighth carry: %d\n", carryEighth);
 
-    //return xHalf + xEighth + (carryHalf & carryEighth);
     return xHalf + xEighth + (((carryHalf << 2) + carryEighth +
         negativeCorrection) >> 3);
 }
