@@ -536,27 +536,61 @@ int subOK(int x, int y) {
  */
 int howManyBits(int x) {
     /*
-     * binary search
+     * Instead of going with a more brute-force approach, we decided to
+     * find a way to split our given string x into groups of 2 (as done with
+     * a few of the functions above). This time, the approach seemed
+     * similar to binary search where each successive split of x into two
+     * groups will now depend on whether the left half is nonzero, as will be
+     * explained below.
      *
-     * 1 in left half, 0 in right half (checkHalf[16, 8, 4, 2] where [16, 8,
-     * 4, 2] refers to the variables defined below with the number inside the
-     * [] represents the length of the halves we're looking at
+     * First, to consolidate both cases where x is positive (including 0) and
+     * when x is negative, we decided to make sure to bitwise complement x if
+     * x is negative (positiveX variable). This makes sure the same procedure
+     * is done for both cases since we can't use any conditionals. To prove
+     * this is plausible, we can provide a mapping of the negative values of
+     * x with the positive values.
      *
-     * number is appended after the positiveX (positiveX[16, 8, 4, 2] after
-     * the respective searches were completed to differentiate the length of
-     * x we are now looking at
+     * A simple case when x is three bits long (can be easily generalized to
+     * an arbitrary length) -- -4(100) and 3(011), -3(101) and 2 (010),
+     * -2(110) and 1(001), and -1(111) and 0(000). Since the interval of
+     * possible values [-4, 3] is possible for 3 bits, we can see that the
+     * pairings are just the bitwise complements of each other.
      *
-     * also, to avoid having to declare all the
-     * variables at the beginning if we used positiveX through all the
-     * searches) -- stricter form of C declarations from dlc
+     * Mapping used for the halves of x: 1 in left half, 0 in right half --
+     * stored in checkHalf[16, 8, 4, 2] where [16, 8, 4, 2] refers to the
+     * variables defined below with the number inside the [] represents the
+     * length of the halves we're looking at
      *
-     * need to add 1 at the end since we made sure to convert x to a positive
-     * form (if needed when x is negative) and an extra bit is needed to
-     * carry the sign bit (e.g., for the case of 7 -- 111 -- we need four
-     * bits instead of 3 to store it as a signed int -> 0111)
+     * Also, the current half-length is appended after the positiveX variable
+     * (positiveX[16, 8, 4, 2] after the respective searches were completed
+     * to differentiate the length of x we are now looking at) to avoid having
+     * to declare all the variables at the beginning than if we just used
+     * positiveX through all the searches -- stricter form of C declarations
+     * from dlc.
      *
-     * finalBit is for checking if our last bit is a 1 (no more cutting our
-     * current sequence of x in halves and occurs when the most significant 1
+     * To count up all the bits up to the most significant 1 bit in x (for
+     * positive cases since we converted the negative values to positive
+     * values), we just need to keep track of which half we are looking at
+     * with each binary search step. For example, if we find that x is in the
+     * left half after the first step (halves of 16 bits), then we add the 16
+     * bits to the total and shift x, so we're just looking at that half.
+     * However, if we find that x is in the right half instead (so the left
+     * half is all 0s), then we don't add anything to the total and continue
+     * our search with the right half instead. The half chosen is stored in
+     * checkHalf[16, 8, 4, 2] (as mentioned above) and the number of bits we
+     * found the most significant 1 bit to contain is the half is stored in
+     * the atLeast[16, 8, 4, 2]Bits variable (just stores [16, 8, 4, 2] or 0
+     * depending on the current iteration of the search and which half the
+     * most significant 1 bit is found in -- stored in checkHalf[16, 8, 4, 2])
+     *
+     * We need to add 1 at the end since we made sure to convert x to a
+     * positive form (if needed when x is negative) and an extra bit is
+     * needed to carry the sign bit (e.g., for the case of 7 -- 111 -- we
+     * need four bits instead of 3 to store it as a signed int -> 0111).
+     *
+     * The finalBit variable is for checking if our last bit is a 1 (no more
+     * cutting our current sequence of x in halves and occurs when the most
+     * significant 1
      * bit is in the 4th bit position (3rd index) in the most significant
      * byte position of x) -- e.g., 1001 -> 10 -> 1, or when the most
      * significant byte of x is at least 0x8
@@ -615,6 +649,10 @@ unsigned float_abs(unsigned uf) {
      *
      * check if uf is NaN (just return the input if so)
      *
+     * in order to fit in within the max ops., the value for the exponent
+     * part with all 1s (unshifted and masked so all other bits set to 0)
+     * was hardcoded to 0x7fc00000 -- given in the project spec.
+     *
      * assuming an int has a length of 32 bits (4 bytes)
      */
 
@@ -634,7 +672,12 @@ unsigned float_abs(unsigned uf) {
 
     int fractionCondition = uf << (32 - fractionLength);
 
-    if (((exponentPart >> fractionLength) == exponentBitMask)
+//    if (((exponentPart >> fractionLength) == exponentBitMask)
+//        && fractionCondition != 0) {
+//        return uf;
+//    }
+
+    if ((exponentPart == 0x7fc0000)
         && fractionCondition != 0) {
         return uf;
     }
@@ -661,12 +704,33 @@ unsigned float_abs(unsigned uf) {
  *   Rating: 4
  */
 unsigned float_twice(unsigned uf) {
+    /*
+     *
+     */
+
+    int exponentLength = 8;
+    int fractionLength = 23;
+
+    int exponentBitMask = (0x1 << exponentLength) - 1;
+    int exponentPart = uf & (exponentBitMask << fractionLength);
+
+    int fractionCondition = uf << (32 - fractionLength);
+
+    if ((exponentPart == 0x7fc0000)
+        && fractionCondition != 0) {
+        return uf;
+    }
+
     int leftBitMask = 1 << 31;
     int rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
     int signBit = leftBitMask & uf;
-    int rawMultiply2 = uf << 1;
+
+    //int rawMultiply2 = uf << 1;
+    int newExponent = exponentPart + (1 << fractionLength);
+    int rawMultiply2 = uf | newExponent; // just add 1 to
+    // the exponent (base 2)
 
     int result = (rawMultiply2 & rightBitMask) | signBit;
 
