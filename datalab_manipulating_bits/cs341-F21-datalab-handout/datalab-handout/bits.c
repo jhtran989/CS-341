@@ -794,13 +794,26 @@ unsigned float_twice(unsigned uf) {
 int trueFiveEighths(int x) {
     /*
      * split 5/8 into 1/2 + 1/8
+     *
+     * case where a 1 occurs in both cases for the 2^-1 place
+     * half: *.1
+     * eighth: *.111
+     *
+     * if halves add together to result in extra addition of 1
+     *
+     * also check case if x is a 1
      */
 
     int xHalf = x >> 1;
-    int xEigth = x >> 3;
+    int xEighth = x >> 3;
 
-    int bitHalf = x & 0x01;
-    int bitEigth = (x >> 2) & 0x01;
+    int carryHalf = x & 0x01;
+    int carryEighth = (x >> 2) & 0x01;
 
-    return xHalf + xEigth;
+    printf("half: %x\n", xHalf);
+    printf("eighth: %x\n", xEighth);
+    printf("half carry: %d\n", carryHalf);
+    printf("eighth carry: %d\n", carryEighth);
+
+    return xHalf + xEighth + (carryHalf & carryEighth);
 }
