@@ -747,6 +747,8 @@ unsigned float_twice(unsigned uf) {
 
     signBit = leftBitMask & uf;
 
+    printf("sign bit: %d\n", signBit);
+
     //int rawMultiply2 = uf << 1;
     newExponent = exponentPart + (1 << fractionLength);
     rawMultiply2 = uf | newExponent; // just add 1 to
