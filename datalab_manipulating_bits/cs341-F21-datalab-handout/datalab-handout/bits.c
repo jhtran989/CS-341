@@ -749,8 +749,8 @@ unsigned float_twice(unsigned uf) {
 
     signBit = leftBitMask & uf;
 
-    printf("sign bit: %d\n", !!signBit);
-    printf("exponent part: %x\n", exponentPart);
+//    printf("sign bit: %d\n", !!signBit);
+//    printf("exponent part: %x\n", exponentPart);
 
     //int rawMultiply2 = uf << 1;
     if (exponentPart != 0) {
@@ -773,8 +773,8 @@ unsigned float_twice(unsigned uf) {
         rawMultiply2 = rawMultiply2 << 1;
     }
 
-    printf("new exponent: %x\n", newExponent);
-    printf("raw multiply: %x\n", rawMultiply2);
+//    printf("new exponent: %x\n", newExponent);
+//    printf("raw multiply: %x\n", rawMultiply2);
 
     result = (rawMultiply2 & rightBitMask) | signBit;
 
