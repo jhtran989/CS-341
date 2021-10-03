@@ -723,7 +723,8 @@ unsigned float_twice(unsigned uf) {
 
     // hardcode to 0xff
     int exponentBitMask = 0xff;
-    int exponentPart = uf & (exponentBitMask << fractionLength);
+    int shiftedExponentBitMask = exponentBitMask << fractionLength;
+    int exponentPart = uf & shiftedExponentBitMask;
 
     // change 32 - fractionLength = 9
     int fractionCondition = uf << 9;
@@ -756,8 +757,8 @@ unsigned float_twice(unsigned uf) {
     }
 
     rawMultiply2 = uf;
-    rawMultiply2 = rawMultiply2 | exponentBitMask;
-    rawMultiply2 = rawMultiply2 ^ exponentBitMask;
+    rawMultiply2 = rawMultiply2 | shiftedExponentBitMask;
+    rawMultiply2 = rawMultiply2 ^ shiftedExponentBitMask;
 
     rawMultiply2 = uf | newExponent; // just add 1 to
     // the exponent (base 2)
