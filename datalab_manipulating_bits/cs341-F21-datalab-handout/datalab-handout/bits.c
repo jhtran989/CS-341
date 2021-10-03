@@ -815,5 +815,6 @@ int trueFiveEighths(int x) {
     printf("half carry: %d\n", carryHalf);
     printf("eighth carry: %d\n", carryEighth);
 
-    return xHalf + xEighth + (carryHalf & carryEighth);
+    //return xHalf + xEighth + (carryHalf & carryEighth);
+    return xHalf + xEighth + (((((x % 2) * 4) + (x % 8))) * 5) / 8;
 }
