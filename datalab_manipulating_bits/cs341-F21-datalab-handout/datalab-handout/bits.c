@@ -760,7 +760,7 @@ unsigned float_twice(unsigned uf) {
     rawMultiply2 = rawMultiply2 | shiftedExponentBitMask;
     rawMultiply2 = rawMultiply2 ^ shiftedExponentBitMask;
 
-    rawMultiply2 = uf | newExponent; // just add 1 to
+    rawMultiply2 = rawMultiply2 | newExponent; // just add 1 to
     // the exponent (base 2)
 
     printf("new exponent: %x\n", newExponent);
