@@ -689,7 +689,7 @@ unsigned float_abs(unsigned uf) {
         return uf;
     }
 
-    leftBitMask = 1 << 31;
+    leftBitMask = 0x800000000; // changed to hardcode 0x800000000
     rightBitMask = ~leftBitMask; // a bit mask of all 1s except the most
     // significant bit
 
