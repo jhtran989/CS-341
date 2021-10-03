@@ -822,10 +822,10 @@ int trueFiveEighths(int x) {
     // evenly divisible by 8 -- remedied by adding 7/8 instead of 1, which
     // after the shift, results in 0 if either the half or eighth are nonzero)
 
-    printf("half: %x\n", xHalf);
-    printf("eighth: %x\n", xEighth);
-    printf("half carry: %d\n", carryHalf);
-    printf("eighth carry: %d\n", carryEighth);
+//    printf("half: %x\n", xHalf);
+//    printf("eighth: %x\n", xEighth);
+//    printf("half carry: %d\n", carryHalf);
+//    printf("eighth carry: %d\n", carryEighth);
 
     //return xHalf + xEighth + (carryHalf & carryEighth);
     return xHalf + xEighth + (((carryHalf << 2) + carryEighth +
