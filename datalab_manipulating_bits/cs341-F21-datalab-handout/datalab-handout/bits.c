@@ -755,6 +755,7 @@ unsigned float_twice(unsigned uf) {
     //int rawMultiply2 = uf << 1;
     if (exponentPart != 0) {
         newExponent = exponentPart + (1 << fractionLength);
+    } else {
         zeroExponentFlag = 0x01;
     }
 //    else if (fractionCondition != 0) {
