@@ -722,12 +722,12 @@ unsigned float_twice(unsigned uf) {
     int fractionLength = 23;
 
     // hardcode to 0xff
-    int exponentBitMask = 0xff;
-    int shiftedExponentBitMask = exponentBitMask << fractionLength;
-    int exponentPart = uf & shiftedExponentBitMask;
+    unsigned exponentBitMask = 0xff;
+    unsigned shiftedExponentBitMask = exponentBitMask << fractionLength;
+    unsigned exponentPart = uf & shiftedExponentBitMask;
 
     // change 32 - fractionLength = 9
-    int fractionCondition = uf << 9;
+    unsigned fractionCondition = uf << 9;
 
     // moved declarations before if statement
     unsigned int leftBitMask;
@@ -739,7 +739,8 @@ unsigned float_twice(unsigned uf) {
     unsigned int zeroExponentFlag = 0x00;
 
     if (((exponentPart >> fractionLength) == exponentBitMask)
-        && fractionCondition != 0) {
+        && (fractionCondition != 0)) {
+        printf("current exponent: %x\n", exponentPart >> fractionLength);
         return uf;
     }
 
