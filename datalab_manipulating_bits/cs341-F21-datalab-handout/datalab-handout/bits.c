@@ -736,6 +736,7 @@ unsigned float_twice(unsigned uf) {
     unsigned int newExponent = 0;
     unsigned int rawMultiply2 = uf;
     unsigned int result;
+    unsigned int zeroExponentFlag = 0x00;
 
     if ((exponentPart == 0x7fc0000)
         && fractionCondition != 0) {
@@ -754,15 +755,22 @@ unsigned float_twice(unsigned uf) {
     //int rawMultiply2 = uf << 1;
     if (exponentPart != 0) {
         newExponent = exponentPart + (1 << fractionLength);
-    } else if (fractionCondition != 0) {
-        rawMultiply2 = rawMultiply2 << 1;
+        zeroExponentFlag = 0x01;
     }
+//    else if (fractionCondition != 0) {
+//        rawMultiply2 = rawMultiply2 << 1;
+//    }
 
     rawMultiply2 = rawMultiply2 | shiftedExponentBitMask;
     rawMultiply2 = rawMultiply2 ^ shiftedExponentBitMask;
 
     rawMultiply2 = rawMultiply2 | newExponent; // just add 1 to
     // the exponent (base 2)
+
+    // has to be done AFTER the exponent has been updated
+    if (zeroExponentFlag && fractionCondition != 0) {
+        rawMultiply2 = rawMultiply2 << 1;
+    }
 
     printf("new exponent: %x\n", newExponent);
     printf("raw multiply: %x\n", rawMultiply2);
