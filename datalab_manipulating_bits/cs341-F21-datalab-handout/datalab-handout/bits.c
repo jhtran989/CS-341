@@ -659,11 +659,13 @@ unsigned float_abs(unsigned uf) {
     int exponentLength = 8;
     int fractionLength = 23;
 
-    int maxExponent = 0x7fc0000;
+    //int maxExponent = 0x7fc0000;
 
-    int exponentBitMask = (0x1 << exponentLength) - 1;
+    // hardcode (0x1 << exponentLength) - 1 to 0xff
+    int exponentBitMask = 0xff;
     //int exponentPart = uf & (exponentBitMask << fractionLength);
-    int exponentPart = uf & maxExponent;
+    //int exponentPart = uf & maxExponent;
+    int exponentPart = (uf >> 23) & exponentBitMask;
 
 //    int fractionBitMask = (0x1 << fractionLength) - 1;
 //    int fractionPart = uf & fractionBitMask;
@@ -673,7 +675,8 @@ unsigned float_abs(unsigned uf) {
 //        return uf;
 //    }
 
-    int fractionCondition = uf << (32 - fractionLength);
+    // change 32 - fractionLength to 9
+    int fractionCondition = uf << 9;
 
 //    if (((exponentPart >> fractionLength) == exponentBitMask)
 //        && fractionCondition != 0) {
@@ -684,7 +687,7 @@ unsigned float_abs(unsigned uf) {
     int leftBitMask;
     int rightBitMask;
 
-    if ((exponentPart == maxExponent)
+    if ((exponentPart == exponentBitMask)
         && fractionCondition != 0) {
         return uf;
     }
