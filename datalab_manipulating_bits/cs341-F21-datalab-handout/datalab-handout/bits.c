@@ -729,12 +729,12 @@ unsigned float_twice(unsigned uf) {
     int fractionCondition = uf << 9;
 
     // moved declarations before if statement
-    int leftBitMask;
-    int rightBitMask;
-    int signBit;
-    int newExponent;
-    int rawMultiply2;
-    int result;
+    unsigned int leftBitMask;
+    unsigned int rightBitMask;
+    unsigned int signBit;
+    unsigned int newExponent;
+    unsigned int rawMultiply2;
+    unsigned int result;
 
     if ((exponentPart == 0x7fc0000)
         && fractionCondition != 0) {
