@@ -816,11 +816,18 @@ int trueFiveEighths(int x) {
     //int carryEighth = (x >> 2) & 0x01;
     int carryEighth = x & 0x07; // bit representation of 0000 0111
 
+    int negativeCorrection = (x >> 31) & 0x07; // 0 for positive values and
+    // 111 (7) for negative values (shifting along rounds down values,
+    // including negative values, so it is corrected by added 1 if x is not
+    // evenly divisible by 8 -- remedied by adding 7/8 instead of 1, which
+    // after the shift, results in 0 if either the half or eighth are nonzero)
+
     printf("half: %x\n", xHalf);
     printf("eighth: %x\n", xEighth);
     printf("half carry: %d\n", carryHalf);
     printf("eighth carry: %d\n", carryEighth);
 
     //return xHalf + xEighth + (carryHalf & carryEighth);
-    return xHalf + xEighth + (((carryHalf << 2) + carryEighth) >> 3);
+    return xHalf + xEighth + (((carryHalf << 2) + carryEighth +
+        negativeCorrection) >> 3);
 }
