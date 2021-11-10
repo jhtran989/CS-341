@@ -62,6 +62,7 @@ personal_test
 .idea
 *.idea
 
+scratch.c
 main.c
 CMakeLists.txt
 cmake-build-debug
