@@ -66,3 +66,6 @@ scratch.c
 main.c
 CMakeLists.txt
 cmake-build-debug
+
+# cachelab
+csim_test
