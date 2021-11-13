@@ -440,7 +440,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             if (operation == M) {
                 /* just in case as we will edit the parsed instruction --
                  * split into two parts */
-                traceInstruction copyParsedInstruction = parsedInstruction;
+                //traceInstruction copyParsedInstruction = parsedInstruction;
                 parsedInstruction.operation = L;
             }
 
@@ -490,7 +490,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             if (operation == M) {
                 /* just in case as we will edit the parsed instruction --
                  * split into two parts */
-                traceInstruction copyParsedInstruction = parsedInstruction;
+                //traceInstruction copyParsedInstruction = parsedInstruction;
                 parsedInstruction.operation = S;
 
                 cacheAddress address = getCacheAddress(
@@ -788,13 +788,13 @@ int main(int argc, char **argv) {
         printf("test strcat: %s\n", a);
 
         /* test null pointer... */
-        char* testNullPtr;
-        char* otherNullPtr = testNullPtr;
-
-        otherNullPtr = calloc(1, sizeof(char));
-        if (testNullPtr == NULL) {
-
-        }
+//        char* testNullPtr;
+//        char* otherNullPtr = testNullPtr;
+//
+//        otherNullPtr = calloc(1, sizeof(char));
+//        if (testNullPtr == NULL) {
+//
+//        }
 
         /* from before, make sure EVERYTHING is a pointer -- reference */
 
