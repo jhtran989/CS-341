@@ -7,7 +7,7 @@
 
 #define MAX_STRING_LENGTH 15
 #define IDE_DEBUG false
-#define PRINT_DEBUG false
+#define PRINT_DEBUG true
 
 /*
  * Cache Simulator
