@@ -456,12 +456,12 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 printf("Final output:\n");
             }
 
-            /* remove the space in front of the instruction after parsing */
-            instructionInput++;
-
             /* remove the new line ("\n") after the instruction in the trace
              * file by setting that character to the null character ("\0") */
             instructionInput[strlen(instructionInput) - 1] = '\0';
+
+            /* remove the space in front of the instruction after parsing */
+            instructionInput++;
 
             if (PRINT_DEBUG) {
                 printf("%s ", instructionInput);
