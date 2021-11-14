@@ -64,6 +64,7 @@ personal_test
 
 scratch.c
 main.c
+main_copy.c
 CMakeLists.txt
 cmake-build-debug
 
