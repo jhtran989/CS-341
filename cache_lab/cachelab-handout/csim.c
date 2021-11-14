@@ -7,7 +7,7 @@
 
 /* cause of the error...MAKE SURE TO SET A DECENT STRING LENGTH */
 #define MAX_STRING_LENGTH 50
-#define MAX_NUM_LINES_INPUT 600
+#define MAX_NUM_LINES_INPUT 700
 #define IDE_DEBUG false
 #define PRINT_DEBUG false
 
@@ -414,6 +414,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     }
 
     int counterIndex = 0;
+    /* dubious...does fgets() clears the pointer each time... */
     while (fgets(instructionInput, MAX_STRING_LENGTH, traceFile) != NULL) {
         //FIXME
         if (PRINT_DEBUG) {
@@ -470,6 +471,8 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 printf("Final output:\n");
             }
 
+            /* dubious...changes the actual start of the pointer...could be
+             * fixed by decrementing again, hopefully... */
             /* remove the space in front of the instruction after parsing */
             instructionInput++;
 
@@ -537,16 +540,22 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 }
             }
 
+            /* IMPORTANT decrement again */
+            instructionInput--;
+
+            /* ignores any 'I' instruction */
+            counterIndex++;
+
             if (PRINT_DEBUG) {
                 printf("\n\n");
             }
         } else {
             if (PRINT_DEBUG) {
                 printf("Skipped 'I' instruction load\n");
-            }
 
-            strcat(finalOutput[counterIndex], "Skipped 'I' instruction load");
-            //finalOutput[counterIndex] = "Skipped 'I' instruction load";
+                strcat(finalOutput[counterIndex], "Skipped 'I' instruction load");
+                //finalOutput[counterIndex] = "Skipped 'I' instruction load";
+            }
         }
 
         /* prints out the corresponding line stored in the final output */
@@ -558,8 +567,9 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             printFinalOutput(finalOutput, counterIndex);
         }
 
+        /* move up for final submission -- without 'I' instruction now... */
         /* includes the 'I' instruction */
-        counterIndex++;
+        //counterIndex++;
 
         if (PRINT_DEBUG) {
             printEntireCache(cache, parameters);
