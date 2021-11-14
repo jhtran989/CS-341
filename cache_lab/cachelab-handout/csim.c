@@ -862,7 +862,7 @@ int main(int argc, char **argv) {
         printf("check first element of the char*\n");
         printf("address of test cache2: %p\n", &testCache2.array[0]);
         printf("address of another test cache2: %p\n", &anotherTestCache2.array[0]);
-        printf("address of some test cache2: %p\n", &someTestCache2.array[0]);
+        //printf("address of some test cache2: %p\n", &someTestCache2.array[0]);
 
         printf("-----------------------------\n");
     }
