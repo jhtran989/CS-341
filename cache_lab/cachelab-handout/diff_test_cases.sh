@@ -47,8 +47,8 @@ do
 	
 	personal_file=${personal_file_prefix}${i}${text_ext}
 	ref_file=${ref_file_prefix}${i}${text_ext}
-	${up}${up}${exec_prefix}${personal_exec} -v -s ${s_array[i]} -E ${E_array[i]} -b ${b_array[i]} -t ${up}${up}${traces_files_array[i]} > ${personal_file}
-	${up}${up}${exec_prefix}${ref_exec} -v -s ${s_array[i]} -E ${E_array[i]} -b ${b_array[i]} -t ${up}${up}${traces_files_array[i]} > ${ref_file}
+	${up}${up}${exec_prefix}${personal_exec} -v -s ${s_array[i]} -E ${E_array[i]} -b ${b_array[i]} -t ${up}${up}${trace_files_array[i]} > ${personal_file}
+	${up}${up}${exec_prefix}${ref_exec} -v -s ${s_array[i]} -E ${E_array[i]} -b ${b_array[i]} -t ${up}${up}${trace_files_array[i]} > ${ref_file}
 	diff ${personal_file} ${ref_file} > ${diff_output}
 	
 	cd ${up}
