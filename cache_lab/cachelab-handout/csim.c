@@ -855,7 +855,7 @@ int main(int argc, char **argv) {
         test2 anotherTestCache2 = testCache2;
         anotherTestCache2.array = calloc(256, sizeof(char));
         //testCache2 = anotherTestCache2;
-        test2 someTestCache2;
+        //test2 someTestCache2;
 
         printf("address of test cache2: %p\n", &testCache2);
         printf("address of another test cache2: %p\n", &anotherTestCache2);
