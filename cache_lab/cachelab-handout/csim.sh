@@ -10,6 +10,9 @@ gcc -o csim_test main.c
 #./csim_test -v -s 4 -E 2 -b 4 -t traces/yi.trace
 #./csim_test -v -s 4 -E 4 -b 4 -t traces/yi.trace
 #./csim_test -v -s 4 -E 8 -b 4 -t traces/yi.trace
-./csim_test -v -s 4 -E 16 -b 4 -t traces/yi.trace
+#./csim_test -v -s 4 -E 16 -b 4 -t traces/yi.trace
 
 # remember to test the other trace files...
+
+# official test cases
+./csim_test -v -s 1 -E 1 -b 1 -t traces/yi2.trace

@@ -1,13 +1,14 @@
-#include "cachelab.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <stdbool.h>
 #include <string.h>
 
-#define MAX_STRING_LENGTH 15
+/* cause of the error...MAKE SURE TO SET A DECENT STRING LENGTH */
+#define MAX_STRING_LENGTH 50
+#define MAX_NUM_LINES_INPUT 100
 #define IDE_DEBUG false
-#define PRINT_DEBUG true
+#define PRINT_DEBUG false
 
 /*
  * Cache Simulator
@@ -120,6 +121,7 @@ typedef struct {
     int S; /* number of sets (S = 2^s) */
     int B; /* cache line block length in bytes (B = 2^b) */
     char *traceFile;
+    bool verbose;
 } cacheParameters;
 
 typedef struct {
@@ -129,15 +131,17 @@ typedef struct {
 
 /*
  * Function definitions
- * - remove personal printSummary() function
+ * - comment out personal printSummary() function
  */
-
 //void printSummary(int hits, int misses, int evictions);
 void printUsage(char** argv);
 void printArgs(int argc, char** argv);
 void printParsedTraceInstruction(traceInstruction instruction);
 void printCacheAddress(cacheAddress address);
 void printEntireCache(entireCache cache, cacheParameters parameters);
+void printFinalOutput(char** finalOutput, int counterIndex);
+
+#define PRINT_SEPARATOR
 
 entireCache allocateEntireCache();
 traceInstruction getTraceInstruction(char *rawTraceInstruction);
@@ -207,7 +211,7 @@ void printArgs(int argc, char** argv) {
 void printParsedTraceInstruction(traceInstruction instruction) {
     printf("Parsed Trace Instruction:\n");
     printf("operation: %c\n", instruction.operation);
-    printf("cache address: %llx\n", instruction.rawAddress);
+    printf("cache address: 0x%llx\n", instruction.rawAddress);
     printf("operation size: %d\n", instruction.operationSize);
     printf("\n");
 }
@@ -249,7 +253,7 @@ void printEntireCache(entireCache cache, cacheParameters parameters) {
             printf("line num addresses: %u\n", currentLine->numAddresses);
             printf("line block(s): ");
             if (currentLine->block != NULL) {
-                int numAddresses = currentLine->numAddresses; // no way to
+                uInt numAddresses = currentLine->numAddresses; // no way to
                 // get the operation size...
                 for (int k = 0; k < numAddresses; ++k) {
                     cacheBlock currentBlock = currentLine->block[k];
@@ -281,6 +285,14 @@ void printCacheParameters(cacheParameters parameters) {
     printf("trace file: %s\n", parameters.traceFile);
     printf("\n");
 }
+
+void printFinalOutput(char** finalOutput, int counterIndex) {
+    for (int i = 0; i < counterIndex; i++) {
+        printf("%s \n", finalOutput[i]);
+    }
+}
+
+#define PRINT_SEPARATOR
 
 entireCache allocateEntireCache(cacheParameters parameters) {
     entireCache cache;
@@ -386,12 +398,12 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     char *instructionInput = (char*) calloc(MAX_STRING_LENGTH, sizeof(char));
 
     /* concatenate strings...no spaces between*/
-    int finalOutputLength = 100;
-    char **finalOutput = (char**) calloc(finalOutputLength, sizeof(char*));
+    //int finalOutputLength = 100;
+    char **finalOutput = (char**) calloc(MAX_NUM_LINES_INPUT, sizeof(char*));
 
-    int stringLength = 50;
-    for (int i = 0; i < finalOutputLength; i++) {
-        finalOutput[i] = (char*) calloc(stringLength, sizeof(char));
+    //int stringLength = 50;
+    for (int i = 0; i < MAX_NUM_LINES_INPUT; i++) {
+        finalOutput[i] = (char*) calloc(MAX_STRING_LENGTH, sizeof(char));
     }
 
     if (PRINT_DEBUG) {
@@ -440,7 +452,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             if (operation == M) {
                 /* just in case as we will edit the parsed instruction --
                  * split into two parts */
-                //traceInstruction copyParsedInstruction = parsedInstruction;
+                traceInstruction copyParsedInstruction = parsedInstruction;
                 parsedInstruction.operation = L;
             }
 
@@ -459,17 +471,9 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             /* remove the space in front of the instruction after parsing */
             instructionInput++;
 
-            if (PRINT_DEBUG) {
-                printf("before removing new line: %s\n", instructionInput);
-            }
-
             /* remove the new line ("\n") after the instruction in the trace
              * file by setting that character to the null character ("\0") */
             instructionInput[strlen(instructionInput) - 1] = '\0';
-
-            if (PRINT_DEBUG) {
-                printf("after removing new line:\n");
-            }
 
             if (PRINT_DEBUG) {
                 printf("%s ", instructionInput);
@@ -498,7 +502,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             if (operation == M) {
                 /* just in case as we will edit the parsed instruction --
                  * split into two parts */
-                //traceInstruction copyParsedInstruction = parsedInstruction;
+                traceInstruction copyParsedInstruction = parsedInstruction;
                 parsedInstruction.operation = S;
 
                 cacheAddress address = getCacheAddress(
@@ -539,6 +543,16 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             //finalOutput[counterIndex] = "Skipped 'I' instruction load";
         }
 
+        /* prints out the corresponding line stored in the final output */
+        if (PRINT_DEBUG) {
+            printf("counter index: %d\n", counterIndex);
+            printf("final output line: %s\n", finalOutput[counterIndex]);
+
+            /* check if memory is overwritten for previous entries... */
+            printFinalOutput(finalOutput, counterIndex);
+        }
+
+        /* includes the 'I' instruction */
         counterIndex++;
 
         if (PRINT_DEBUG) {
@@ -548,10 +562,11 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
 
     if (PRINT_DEBUG) {
         printf("Completed -- FINAL OUTPUT\n");
+        printf("number of instructions: %d\n", counterIndex);
     }
 
-    for (int i = 0; i < counterIndex; i++) {
-        printf("%s \n", finalOutput[i]);
+    if (parameters.verbose) {
+        printFinalOutput(finalOutput, counterIndex);
     }
 
     if (PRINT_DEBUG) {
@@ -642,13 +657,15 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
     } else { // hitMiss == miss
         summary->numMisses++;
 
-        /* only process eviction if the instruction is not a store */
-        if (eviction && operation != S) {
-            summary->numEvictions++;
+        /* only process eviction if the instruction is not a store, do
+         * nothing otherwise... */
+        if (operation != S) {
+            if (eviction) {
+                summary->numEvictions++;
 
-            /* need to implement Least Recently Used (LRU) replacement policy
-             * for eviction */
-            cacheLine *lruLine = set->lruLine;
+                /* need to implement Least Recently Used (LRU) replacement policy
+                 * for eviction */
+                cacheLine *lruLine = set->lruLine;
 
 //            printf("LRU cache line:\n");
 //            printf("line index: %u\n", lruLine->lineIndex);
@@ -657,57 +674,59 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
 //            printf("line num addresses: %u\n", lruLine->numAddresses);
 //            printf("line block(s): ");
 
-            /* memory should be REALLOCATED */
-            free(lruLine->block);
+                /* memory should be REALLOCATED */
+                free(lruLine->block);
 
-            int numAddresses = parameters.B / operationSize;
-            lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
+                int numAddresses = parameters.B / operationSize;
+                lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
 
-            cacheBlock *currentBlock = lruLine->block;
+                cacheBlock *currentBlock = lruLine->block;
 
-            /* relabel addresses to the specified cache line */
-            rawCacheAddress initialAddress = address.rawAddress
-                                             - address.blockOffset;
-            for (uInt i = 0; i < numAddresses; i++) {
-                currentBlock[i] = initialAddress + i;
+                /* relabel addresses to the specified cache line */
+                rawCacheAddress initialAddress = address.rawAddress
+                                                 - address.blockOffset;
+                for (uInt i = 0; i < numAddresses; i++) {
+                    currentBlock[i] = initialAddress + i;
+                }
+
+                lruLine->tag = address.tag;
+                lruLine->numAddresses = numAddresses;
+
+                updateLRUCacheLine(set, parameters);
+            } else { /* maybe need to account store WITH eviction and other
+ * instructions WITHOUT eviction separately -- don't do anything to store? */
+                cacheLine *lineEdit;
+                uInt numLinesInUse = set->numLinesInUse;
+
+                lineEdit = &set->cache_lines[numLinesInUse];
+                //lineEdit->lineIndex = numLinesInUse;
+
+                //TODO: edit valid bit and block addresses
+                int numBytes = parameters.B;
+                int numAddresses = numBytes / operationSize;
+                lineEdit->block = calloc(numAddresses, sizeof(cacheBlock));
+
+                cacheBlock *currentBlock = lineEdit->block;
+                rawCacheAddress initialAddress = address.rawAddress
+                                                 - address.blockOffset;
+                for (int i = 0; i < numAddresses; ++i) {
+                    currentBlock[i] = initialAddress + i;
+                }
+
+                lineEdit->valid_bit = 1;
+                lineEdit->tag = address.tag;
+                lineEdit->numAddresses = numAddresses;
+
+                /* should only set lru line at the beginning -- index 0 */
+                /* sets the first line as the lru line if none of the lines were
+                 * used yet */
+                if (numLinesInUse == 0) {
+                    set->lruLine = lineEdit;
+                    set->lruLineIndex = numLinesInUse;
+                }
+
+                set->numLinesInUse++;
             }
-
-            lruLine->tag = address.tag;
-            lruLine->numAddresses = numAddresses;
-
-            updateLRUCacheLine(set, parameters);
-        } else {
-            cacheLine *lineEdit;
-            uInt numLinesInUse = set->numLinesInUse;
-
-            /* sets the first line as the lru line if none of the lines were
-             * used yet */
-            lineEdit = &set->cache_lines[numLinesInUse];
-            lineEdit->lineIndex = numLinesInUse;
-
-            //TODO: edit valid bit and block addresses
-            int numBytes = parameters.B;
-            int numAddresses = numBytes / operationSize;
-            lineEdit->block = calloc(numAddresses, sizeof(cacheBlock));
-
-            cacheBlock *currentBlock = lineEdit->block;
-            rawCacheAddress initialAddress = address.rawAddress
-                                             - address.blockOffset;
-            for (int i = 0; i < numAddresses; ++i) {
-                currentBlock[i] = initialAddress + i;
-            }
-
-            lineEdit->valid_bit = 1;
-            lineEdit->tag = address.tag;
-            lineEdit->numAddresses = numAddresses;
-
-            /* should only set lru line at the beginning -- index 0 */
-            if (numLinesInUse == 0) {
-                set->lruLine = lineEdit;
-                set->lruLineIndex = numLinesInUse;
-            }
-
-            set->numLinesInUse++;
         }
     }
 
@@ -796,13 +815,13 @@ int main(int argc, char **argv) {
         printf("test strcat: %s\n", a);
 
         /* test null pointer... */
-//        char* testNullPtr;
-//        char* otherNullPtr = testNullPtr;
-//
-//        otherNullPtr = calloc(1, sizeof(char));
-//        if (testNullPtr == NULL) {
-//
-//        }
+        char* testNullPtr;
+        char* otherNullPtr = testNullPtr;
+
+        otherNullPtr = calloc(1, sizeof(char));
+        if (testNullPtr == NULL) {
+
+        }
 
         /* from before, make sure EVERYTHING is a pointer -- reference */
 
@@ -835,14 +854,14 @@ int main(int argc, char **argv) {
         test2 anotherTestCache2 = testCache2;
         anotherTestCache2.array = calloc(256, sizeof(char));
         //testCache2 = anotherTestCache2;
-        //test2 someTestCache2;
+        test2 someTestCache2;
 
         printf("address of test cache2: %p\n", &testCache2);
         printf("address of another test cache2: %p\n", &anotherTestCache2);
         printf("check first element of the char*\n");
         printf("address of test cache2: %p\n", &testCache2.array[0]);
         printf("address of another test cache2: %p\n", &anotherTestCache2.array[0]);
-        //printf("address of some test cache2: %p\n", &someTestCache2.array[0]);
+        printf("address of some test cache2: %p\n", &someTestCache2.array[0]);
 
         printf("-----------------------------\n");
     }
@@ -851,6 +870,12 @@ int main(int argc, char **argv) {
 
     int opt;
     int previousOpt;
+
+    /* IMPORTANT: set m to 64-bit addresses */
+    parameters.m = 64;
+
+    /* IMPORTANT: initialize the verbose option to false */
+    parameters.verbose = false;
 
     /* put ':' in the starting of the string so that program can distinguish
      * between '?' and ':'*/
@@ -866,6 +891,8 @@ int main(int argc, char **argv) {
                 printUsage(argv);
                 break;
             case 'v':
+                /* set some sort of flag for verbose printing... */
+                parameters.verbose = true;
                 break;
             case 's':
                 if (PRINT_DEBUG) {
@@ -919,9 +946,6 @@ int main(int argc, char **argv) {
         previousOpt = opt;
     }
 
-    /* IMPORTANT: set m to 64-bit addresses */
-    parameters.m = 64;
-
     if (PRINT_DEBUG) {
         printf("Finished parsing command line arguments\n");
         printCacheParameters(parameters);
@@ -941,4 +965,3 @@ int main(int argc, char **argv) {
 
     return 0;
 }
-
