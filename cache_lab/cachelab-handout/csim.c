@@ -24,6 +24,7 @@
  * if store is a miss, then nothing happens after that (whereas a load would
  * result in fetching the data from main memory, disk. etc. and placing in
  * cache)
+ * EDIT: scratch above point; they may have the same result...
  *
  *
  * John Tran
@@ -660,13 +661,16 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
 
         /* only process eviction if the instruction is not a store, do
          * nothing otherwise... */
-        if (operation != S) {
-            if (eviction) {
-                summary->numEvictions++;
+//        if (operation != S) {
+//
+//        }
+        /* maybe no difference after all... */
+        if (eviction) {
+            summary->numEvictions++;
 
-                /* need to implement Least Recently Used (LRU) replacement policy
-                 * for eviction */
-                cacheLine *lruLine = set->lruLine;
+            /* need to implement Least Recently Used (LRU) replacement policy
+             * for eviction */
+            cacheLine *lruLine = set->lruLine;
 
 //            printf("LRU cache line:\n");
 //            printf("line index: %u\n", lruLine->lineIndex);
@@ -675,59 +679,58 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
 //            printf("line num addresses: %u\n", lruLine->numAddresses);
 //            printf("line block(s): ");
 
-                /* memory should be REALLOCATED */
-                free(lruLine->block);
+            /* memory should be REALLOCATED */
+            free(lruLine->block);
 
-                int numAddresses = parameters.B / operationSize;
-                lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
+            int numAddresses = parameters.B / operationSize;
+            lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
 
-                cacheBlock *currentBlock = lruLine->block;
+            cacheBlock *currentBlock = lruLine->block;
 
-                /* relabel addresses to the specified cache line */
-                rawCacheAddress initialAddress = address.rawAddress
-                                                 - address.blockOffset;
-                for (uInt i = 0; i < numAddresses; i++) {
-                    currentBlock[i] = initialAddress + i;
-                }
-
-                lruLine->tag = address.tag;
-                lruLine->numAddresses = numAddresses;
-
-                updateLRUCacheLine(set, parameters);
-            } else { /* maybe need to account store WITH eviction and other
- * instructions WITHOUT eviction separately -- don't do anything to store? */
-                cacheLine *lineEdit;
-                uInt numLinesInUse = set->numLinesInUse;
-
-                lineEdit = &set->cache_lines[numLinesInUse];
-                //lineEdit->lineIndex = numLinesInUse;
-
-                //TODO: edit valid bit and block addresses
-                int numBytes = parameters.B;
-                int numAddresses = numBytes / operationSize;
-                lineEdit->block = calloc(numAddresses, sizeof(cacheBlock));
-
-                cacheBlock *currentBlock = lineEdit->block;
-                rawCacheAddress initialAddress = address.rawAddress
-                                                 - address.blockOffset;
-                for (int i = 0; i < numAddresses; ++i) {
-                    currentBlock[i] = initialAddress + i;
-                }
-
-                lineEdit->valid_bit = 1;
-                lineEdit->tag = address.tag;
-                lineEdit->numAddresses = numAddresses;
-
-                /* should only set lru line at the beginning -- index 0 */
-                /* sets the first line as the lru line if none of the lines were
-                 * used yet */
-                if (numLinesInUse == 0) {
-                    set->lruLine = lineEdit;
-                    set->lruLineIndex = numLinesInUse;
-                }
-
-                set->numLinesInUse++;
+            /* relabel addresses to the specified cache line */
+            rawCacheAddress initialAddress = address.rawAddress
+                                             - address.blockOffset;
+            for (uInt i = 0; i < numAddresses; i++) {
+                currentBlock[i] = initialAddress + i;
             }
+
+            lruLine->tag = address.tag;
+            lruLine->numAddresses = numAddresses;
+
+            updateLRUCacheLine(set, parameters);
+        } else { /* maybe need to account store WITH eviction and other
+ * instructions WITHOUT eviction separately -- don't do anything to store? */
+            cacheLine *lineEdit;
+            uInt numLinesInUse = set->numLinesInUse;
+
+            lineEdit = &set->cache_lines[numLinesInUse];
+            //lineEdit->lineIndex = numLinesInUse;
+
+            //TODO: edit valid bit and block addresses
+            int numBytes = parameters.B;
+            int numAddresses = numBytes / operationSize;
+            lineEdit->block = calloc(numAddresses, sizeof(cacheBlock));
+
+            cacheBlock *currentBlock = lineEdit->block;
+            rawCacheAddress initialAddress = address.rawAddress
+                                             - address.blockOffset;
+            for (int i = 0; i < numAddresses; ++i) {
+                currentBlock[i] = initialAddress + i;
+            }
+
+            lineEdit->valid_bit = 1;
+            lineEdit->tag = address.tag;
+            lineEdit->numAddresses = numAddresses;
+
+            /* should only set lru line at the beginning -- index 0 */
+            /* sets the first line as the lru line if none of the lines were
+             * used yet */
+            if (numLinesInUse == 0) {
+                set->lruLine = lineEdit;
+                set->lruLineIndex = numLinesInUse;
+            }
+
+            set->numLinesInUse++;
         }
     }
 
