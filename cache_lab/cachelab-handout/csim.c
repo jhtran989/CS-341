@@ -490,7 +490,8 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
 
             strcat(finalOutput[counterIndex], HIT_MISS_STRINGS[hitMiss]);
 
-            if (eviction && operation != S) {
+            /* eviction now works with store */
+            if (eviction && operation) {
                 if (PRINT_DEBUG) {
                     printf(" eviction");
                 }
@@ -524,7 +525,8 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 strcat(finalOutput[counterIndex], " ");
                 strcat(finalOutput[counterIndex], HIT_MISS_STRINGS[hitMiss]);
 
-                if (eviction && operation != S) {
+                /* eviction now works with store */
+                if (eviction) {
                     if (PRINT_DEBUG) {
                         printf(" eviction");
                     }
