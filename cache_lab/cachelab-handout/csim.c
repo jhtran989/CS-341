@@ -9,7 +9,7 @@
 #define MAX_STRING_LENGTH 50
 #define MAX_NUM_LINES_INPUT 100
 #define IDE_DEBUG false
-#define PRINT_DEBUG false
+#define PRINT_DEBUG true
 
 /*
  * Cache Simulator
@@ -481,6 +481,8 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 printf("%s ", instructionInput);
             }
             //finalOutput[counterIndex] = instructionInput;
+
+            //TODO: maybe remove extra spaces on either side of input...
             strcat(finalOutput[counterIndex], instructionInput);
             strcat(finalOutput[counterIndex], " ");
 
@@ -684,7 +686,9 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
             /* memory should be REALLOCATED */
             free(lruLine->block);
 
-            int numAddresses = parameters.B / operationSize;
+            /* request (operation) sizes don't matter... */
+            //int numAddresses = parameters.B / operationSize;
+            int numAddresses = parameters.B;
             lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
 
             cacheBlock *currentBlock = lruLine->block;
@@ -709,14 +713,17 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
             //lineEdit->lineIndex = numLinesInUse;
 
             //TODO: edit valid bit and block addresses
-            int numBytes = parameters.B;
-            int numAddresses = numBytes / operationSize;
+
+            /* request (operation) sizes don't matter... */
+//            int numBytes = parameters.B;
+//            int numAddresses = numBytes / operationSize;
+            int numAddresses = parameters.B;
             lineEdit->block = calloc(numAddresses, sizeof(cacheBlock));
 
             cacheBlock *currentBlock = lineEdit->block;
             rawCacheAddress initialAddress = address.rawAddress
                                              - address.blockOffset;
-            for (int i = 0; i < numAddresses; ++i) {
+            for (int i = 0; i < numAddresses; i++) {
                 currentBlock[i] = initialAddress + i;
             }
 
