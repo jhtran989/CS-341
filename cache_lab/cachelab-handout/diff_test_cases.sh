@@ -32,8 +32,8 @@ exec_prefix="./"
 up="../"
 
 s_array=("1" "4" "2" "2" "2" "2" "5" "5")
-E_array=(1 2 1 1 2 4 1 1)
-b_array=(1 4 4 3 3 3 5 5)
+E_array=("1" "2" "1" "1" "2" "4" "1" "1")
+b_array=("1" "4" "4" "3" "3" "3" "5" "5")
 trace_files_array=("traces/yi2.trace" "traces/yi.trace" "traces/dave.trace" "traces/trans.trace" 
 "traces/trans.trace" "traces/trans.trace" "traces/trans.trace" "traces/long.trace")  
 
