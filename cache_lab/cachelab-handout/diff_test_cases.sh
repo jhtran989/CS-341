@@ -37,12 +37,12 @@ b_array=(1 4 4 3 3 3 5 5)
 trace_files_array=("traces/yi2.trace" "traces/yi.trace" "traces/dave.trace" "traces/trans.trace" 
 "traces/trans.trace" "traces/trans.trace" "traces/trans.trace" "traces/long.trace")  
 
-mkdir -d ${test_case_dir}
+mkdir -p ${test_case_dir}
 cd ${test_case_dir}
 
 for (( i=0; i<${num_test_cases}; i++))
 do
-	mkdir -d ${i}
+	mkdir -p ${i}
 	cd ${i}
 	
 	personal_file=${personal_file_prefix}${i}${text_ext}
