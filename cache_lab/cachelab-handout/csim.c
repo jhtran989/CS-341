@@ -619,7 +619,7 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
     cacheTag tag = address.tag;
     cacheSet *set = &cache.cache_sets[setIndex];
 
-    enum traceOperation operation = parsedInstruction->operation;
+    //enum traceOperation operation = parsedInstruction->operation;
 
     int numLines = parameters.E;
     enum cacheHitMiss hitMiss = miss;
