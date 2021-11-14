@@ -15,4 +15,8 @@ gcc -o csim_test main.c
 # remember to test the other trace files...
 
 # official test cases
-./csim_test -v -s 1 -E 1 -b 1 -t traces/yi2.trace
+./csim -v -s 1 -E 1 -b 1 -t traces/yi2.trace > test_case_personal_1.txt
+./csim_ref -v -s 1 -E 1 -b 1 -t traces/yi2.trace > test_case_ref_1.txt
+diff test_case_personal_1.txt test_case_ref_1.txt > test_case_output.txt
+
+# find differences (verbose)
