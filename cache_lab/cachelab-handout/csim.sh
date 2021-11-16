@@ -20,11 +20,20 @@ gcc -o csim_test main.c
 #./csim-ref -v -s 1 -E 1 -b 1 -t traces/yi2.trace > test_case_ref_1.txt
 #diff test_case_personal_1.txt test_case_ref_1.txt > test_case_output.txt
 
+# 1st (index 0) OK
+#./csim_test -v -s 1 -E 1 -b 1 -t traces/yi2.trace
+
+# 2nd (index 1) OK
+#./csim_test -v -s 4 -E 2 -b 4 -t traces/yi.trace
+
 # 3rd (index 2) OK
 #./csim_test -v -s 2 -E 1 -b 4 -t traces/dave.trace
 
-# 4rth (index 3)
-./csim_test -v -s 2 -E 1 -b 3 -t traces/trans.trace
+# 4rth (index 3) OK
+#./csim_test -v -s 2 -E 1 -b 3 -t traces/trans.trace
+
+# 5th (index 4)
+./csim_test -v -s 2 -E 2 -b 3 -t traces/trans.trace
 
 # find differences (verbose)
 

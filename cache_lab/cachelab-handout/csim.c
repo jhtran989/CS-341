@@ -11,6 +11,12 @@
 #define IDE_DEBUG false
 #define PRINT_DEBUG false
 
+/* TODO:
+ * - remove white spaces (both sides) -- parse input
+ * - print the input using the parsed arguments...don't use original input
+ * since there's leading zeros...
+ * */
+
 /*
  * Cache Simulator
  *
@@ -147,6 +153,7 @@ void printFinalOutput(char** finalOutput, int counterIndex);
 
 entireCache allocateEntireCache();
 traceInstruction getTraceInstruction(char *rawTraceInstruction);
+char* getTraceInstructionString(traceInstruction *parsedTraceInstruction);
 void parseTraceFile(cacheParameters parameters, entireCache cache,
                     cacheSummary *summary);
 void updateLRUCacheLine(cacheSet *set, cacheParameters parameters);
@@ -288,6 +295,11 @@ void printCacheParameters(cacheParameters parameters) {
     printf("\n");
 }
 
+/*
+ * Prints the final output with verbose option (-v)
+ *
+ * IMPORTANT: the last space after each line is done HERE
+ */
 void printFinalOutput(char** finalOutput, int counterIndex) {
     for (int i = 0; i < counterIndex; i++) {
         printf("%s \n", finalOutput[i]);
@@ -373,6 +385,60 @@ traceInstruction getTraceInstruction(char *rawTraceInstruction) {
     return parsedInstruction;
 }
 
+/*
+ * The "operation" field will be checked elsewhere (for the "I" operation
+ * instruction load)
+ */
+char* getTraceInstructionString(traceInstruction *parsedTraceInstruction) {
+    char* outputTraceInstruction = (char*) calloc(1, MAX_STRING_LENGTH);
+    int outputTracePtr = 0;
+
+    /* first, set the first character to the type of operation */
+//    outputTraceInstruction[outputTracePtr] = parsedTraceInstruction->operation;
+//    outputTracePtr++;
+//
+//    outputTraceInstruction[outputTracePtr] = ' ';
+//    outputTracePtr++;
+
+    char operationString = parsedTraceInstruction->operation;
+
+    strncat(outputTraceInstruction, &operationString, 1);
+    strcat(outputTraceInstruction, " ");
+
+    if (PRINT_DEBUG) {
+        printf("after operation: %s\n", outputTraceInstruction);
+    }
+
+    /* sets the next characters (separated by a space from the operation) to
+     * the address and the operation size, separated by a comma */
+    /* converts the address and operation size to strings first */
+    char* addressString = (char*) calloc(1, MAX_STRING_LENGTH);
+    sprintf(addressString, "%llx", parsedTraceInstruction->rawAddress);
+
+    if (PRINT_DEBUG) {
+        printf("address string: 0x%s\n", addressString);
+    }
+
+    char* operationSizeString = (char*) calloc(1, MAX_STRING_LENGTH);
+    sprintf(operationSizeString, "%d", parsedTraceInstruction->operationSize);
+
+    if (PRINT_DEBUG) {
+        printf("operation size string: %s\n", operationSizeString);
+    }
+
+    /* appends them to the final output string */
+    /* MAKE sure DESTINATION string is CORRECT... */
+    strcat(outputTraceInstruction, addressString);
+    strcat(outputTraceInstruction, ",");
+    strcat(outputTraceInstruction, operationSizeString);
+
+    if (PRINT_DEBUG) {
+        printf("after address/operation size: %s\n", outputTraceInstruction);
+    }
+
+    return outputTraceInstruction;
+}
+
 void parseTraceFile(cacheParameters parameters, entireCache cache,
                     cacheSummary *summary) {
     char *traceFilename = parameters.traceFile;
@@ -402,10 +468,13 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     /* concatenate strings...no spaces between*/
     //int finalOutputLength = 100;
     char **finalOutput = (char**) calloc(MAX_NUM_LINES_INPUT, sizeof(char*));
+    char **newFinalOutput = (char**) calloc(MAX_NUM_LINES_INPUT,
+                                            sizeof(char*));
 
     //int stringLength = 50;
     for (int i = 0; i < MAX_NUM_LINES_INPUT; i++) {
         finalOutput[i] = (char*) calloc(MAX_STRING_LENGTH, sizeof(char));
+        newFinalOutput[i] = (char*) calloc(MAX_STRING_LENGTH, sizeof(char));
     }
 
     if (PRINT_DEBUG) {
@@ -414,6 +483,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     }
 
     int counterIndex = 0;
+    int newCounterIndex = 0;
     /* dubious...does fgets() clears the pointer each time... */
     while (fgets(instructionInput, MAX_STRING_LENGTH, traceFile) != NULL) {
         //FIXME
@@ -428,6 +498,15 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
 
         traceInstruction parsedInstruction = getTraceInstruction(
                 copyInstructionInput);
+
+        /* get the formatted string of the instruction input */
+        char* outputInstructionString =
+                getTraceInstructionString(&parsedInstruction);
+
+        /* test the formatted input line */
+        if (PRINT_DEBUG) {
+            printf("after formatting: %s\n", outputInstructionString);
+        }
 
         enum traceOperation operation = parsedInstruction.operation;
 
@@ -481,7 +560,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             instructionInput[strlen(instructionInput) - 1] = '\0';
 
             if (PRINT_DEBUG) {
-                printf("%s ", instructionInput);
+                printf("original input: %s ", instructionInput);
             }
             //finalOutput[counterIndex] = instructionInput;
 
@@ -495,6 +574,10 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
 
             strcat(finalOutput[counterIndex], HIT_MISS_STRINGS[hitMiss]);
 
+            /* edit a final output string */
+            strcat(outputInstructionString, " ");
+            strcat(outputInstructionString, HIT_MISS_STRINGS[hitMiss]);
+
             /* eviction now works with store */
             if (eviction && operation) {
                 if (PRINT_DEBUG) {
@@ -502,6 +585,9 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 }
 
                 strcat(finalOutput[counterIndex], " eviction");
+
+                /* edit a final output string */
+                strcat(outputInstructionString, " eviction");
             }
 
             //TODO: maybe move into function (repeat from above)
@@ -530,6 +616,10 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 strcat(finalOutput[counterIndex], " ");
                 strcat(finalOutput[counterIndex], HIT_MISS_STRINGS[hitMiss]);
 
+                /* edit a final output string */
+                strcat(outputInstructionString, " ");
+                strcat(outputInstructionString, HIT_MISS_STRINGS[hitMiss]);
+
                 /* eviction now works with store */
                 if (eviction) {
                     if (PRINT_DEBUG) {
@@ -537,8 +627,15 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                     }
 
                     strcat(finalOutput[counterIndex], " eviction");
+
+                    /* edit a final output string */
+                    strcat(outputInstructionString, " eviction");
                 }
             }
+
+            /* move the string to the final output string BEFORE incrementing
+             * counter index */
+            strcpy(newFinalOutput[counterIndex], outputInstructionString);
 
             /* IMPORTANT decrement again */
             instructionInput--;
@@ -553,18 +650,37 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             if (PRINT_DEBUG) {
                 printf("Skipped 'I' instruction load\n");
 
-                strcat(finalOutput[counterIndex], "Skipped 'I' instruction load");
+                strcat(finalOutput[counterIndex],
+                       "Skipped 'I' instruction load");
                 //finalOutput[counterIndex] = "Skipped 'I' instruction load";
+
+                /* ------------------- */
+
+                /* edit a final output string */
+                strcat(outputInstructionString, " ");
+                strcat(outputInstructionString, "SKIPPED");
+
+                /* move the string to the final output string BEFORE
+                 * incrementing counter index */
+                strcpy(newFinalOutput[counterIndex], outputInstructionString);
+
+                /* IMPORTANT: increment counterIndex for debugging... */
+                counterIndex++;
             }
         }
 
         /* prints out the corresponding line stored in the final output */
         if (PRINT_DEBUG) {
             printf("counter index: %d\n", counterIndex);
-            printf("final output line: %s\n", finalOutput[counterIndex]);
+            printf("(old) final output line: %s\n", finalOutput[counterIndex]);
+            printf("(new) final output line: %s\n", outputInstructionString);
 
             /* check if memory is overwritten for previous entries... */
+            printf("(old):\n");
             printFinalOutput(finalOutput, counterIndex);
+
+            printf("(new):\n");
+            printFinalOutput(newFinalOutput, counterIndex);
         }
 
         /* move up for final submission -- without 'I' instruction now... */
@@ -581,8 +697,17 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
         printf("number of instructions: %d\n", counterIndex);
     }
 
+    /* the final space AFTER each line is in the printFinalOutput() function */
     if (parameters.verbose) {
-        printFinalOutput(finalOutput, counterIndex);
+        if (PRINT_DEBUG) {
+            printf("(old):\n");
+            printFinalOutput(finalOutput, counterIndex);
+        }
+
+        if (PRINT_DEBUG) {
+            printf("(new):\n");
+        }
+        printFinalOutput(newFinalOutput, counterIndex);
     }
 
     if (PRINT_DEBUG) {
