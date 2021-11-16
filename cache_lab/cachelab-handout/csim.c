@@ -391,7 +391,7 @@ traceInstruction getTraceInstruction(char *rawTraceInstruction) {
  */
 char* getTraceInstructionString(traceInstruction *parsedTraceInstruction) {
     char* outputTraceInstruction = (char*) calloc(1, MAX_STRING_LENGTH);
-    int outputTracePtr = 0;
+    //int outputTracePtr = 0;
 
     /* first, set the first character to the type of operation */
 //    outputTraceInstruction[outputTracePtr] = parsedTraceInstruction->operation;
@@ -483,7 +483,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     }
 
     int counterIndex = 0;
-    int newCounterIndex = 0;
+    //int newCounterIndex = 0;
     /* dubious...does fgets() clears the pointer each time... */
     while (fgets(instructionInput, MAX_STRING_LENGTH, traceFile) != NULL) {
         //FIXME
