@@ -583,6 +583,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
 
             if (PRINT_DEBUG) {
                 printf("Final output:\n");
+                printf("Instruction line (input): %d\n", counterIndex);
             }
 
             /* dubious...changes the actual start of the pointer...could be
@@ -683,6 +684,11 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
             }
         } else {
             if (SKIP_INSTRUCTION_DEBUG) {
+                if (PRINT_DEBUG) {
+                    printf("Final output:\n");
+                    printf("Instruction line (input): %d\n", counterIndex);
+                }
+
                 printf("Skipped 'I' instruction load\n");
 
                 strcat(finalOutput[counterIndex],
@@ -845,9 +851,19 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
 
         uInt numLinesInUse = set->numLinesInUse;
 
+        uInt lineOrderIndex = -1;
+        for (uInt i = 0; i < (numLinesInUse - 1); i++) {
+            if (set->lineIndexOrder[i] == updateLineIndex) {
+                lineOrderIndex = i;
+                break;
+            }
+        }
+
         /* move all indices after updateLineIndex back by one so we can add
          * updateLineIndex at the end of the line index order */
-        for (uInt i = updateLineIndex; i < (numLinesInUse - 1); i++) {
+        /* need to find where the line index is in the order array first...
+         * from above*/
+        for (uInt i = lineOrderIndex; i < (numLinesInUse - 1); i++) {
             set->lineIndexOrder[i] = set->lineIndexOrder[i + 1];
         }
 
