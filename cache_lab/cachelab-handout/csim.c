@@ -193,6 +193,7 @@ cacheSummary initializeCacheSummary();
 //    printf("evictions: %d\n", evictions);
 //}
 
+
 /*
  * Print usage info
  */
