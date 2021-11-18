@@ -9,12 +9,19 @@
 #define MAX_STRING_LENGTH 50
 #define MAX_NUM_LINES_INPUT 700
 #define IDE_DEBUG false
-#define PRINT_DEBUG false
+#define PRINT_DEBUG true
+#define FINAL_OUTPUT_DEBUG false
+#define SKIP_INSTRUCTION_DEBUG false
 
 /* TODO:
  * - remove white spaces (both sides) -- parse input
  * - print the input using the parsed arguments...don't use original input
  * since there's leading zeros...
+ *
+ * - fix LRU policy...maybe use linked list?
+ * - too much work (no built-in library function...)
+ * - just use a pointer with personal function to move everything around
+ * - should update during hits as well...
  * */
 
 /*
@@ -106,15 +113,16 @@ typedef struct {
 } cacheLine;
 
 typedef struct {
-    cacheLine *cache_lines;
+    cacheLine *cacheLines;
     cacheLine *lruLine;
     uInt lruLineIndex;
     uInt numLinesInUse;
     uInt numLines;
+    uInt *lineIndexOrder;
 } cacheSet;
 
 typedef struct {
-    cacheSet *cache_sets;
+    cacheSet *cacheSets;
     uInt numSets;
 } entireCache;
 
@@ -229,7 +237,7 @@ void printCacheAddress(cacheAddress address) {
     printf("address: 0x%llx\n", address.rawAddress);
     printf("block offset: %lu\n", address.blockOffset);
     printf("set index: %lu\n", address.setIndex);
-    printf("tag: %llx\n", address.tag);
+    printf("tag: 0x%llx\n", address.tag);
     printf("\n");
 }
 
@@ -241,23 +249,47 @@ void printEntireCache(entireCache cache, cacheParameters parameters) {
     printf("----------------------------------------\n");
 
     for (int i = 0; i < parameters.S; i++) {
-        cacheSet currentSet = cache.cache_sets[i];
+        cacheSet currentSet = cache.cacheSets[i];
+        uInt numLinesInUse = currentSet.numLinesInUse;
 
         //printf("current set successful\n");
         printf("----------------------------------------\n");
         printf("set index: %d\n", i);
+        printf("num lines in use: %d\n", numLinesInUse);
+        printf("line index order: ");
+
+        if (numLinesInUse == 0) {
+            printf("EMPTY");
+        }
+
+        for (int j = 0; j < numLinesInUse; j++) {
+            printf("%u ", currentSet.lineIndexOrder[j]);
+        }
+
+        printf("\n");
+
+        //FIXME
+        printf("least recently used (LRU) line index: ");
+
+        if (currentSet.lruLine == NULL) {
+            printf("EMPTY");
+        } else {
+            printf("%d", currentSet.lruLine->lineIndex);
+        }
+
+        printf("\n");
         printf("----------------------------------------\n");
 
         for (int j = 0; j < parameters.E; j++) {
             //printf("current line...\n");
-//            printf("size of cache lines: %lu\n", sizeof(currentSet.cache_lines));
+//            printf("size of cache lines: %lu\n", sizeof(currentSet.cacheLines));
 
-            cacheLine *currentLine = &currentSet.cache_lines[j];
+            cacheLine *currentLine = &currentSet.cacheLines[j];
 
             //printf("current line successful\n");
 
             printf("line index: %u\n", currentLine->lineIndex);
-            printf("line tag: %llu\n", currentLine->tag);
+            printf("line tag: 0x%llx\n", currentLine->tag);
             printf("line valid bit: %d\n", currentLine->valid_bit);
             printf("line num addresses: %u\n", currentLine->numAddresses);
             printf("line block(s): ");
@@ -314,21 +346,23 @@ entireCache allocateEntireCache(cacheParameters parameters) {
 
     /* allocate memory with calloc since it also initializes the values */
     int numSets = parameters.S;
-    cache.cache_sets = (cacheSet*) calloc(numSets, sizeof(cacheSet));
+    cache.cacheSets = (cacheSet*) calloc(numSets, sizeof(cacheSet));
 
     int numLines = parameters.E;
     for (int i = 0; i < numSets; i++) {
-        cache.cache_sets[i].cache_lines = (cacheLine*) calloc(
+        cache.cacheSets[i].cacheLines = (cacheLine*) calloc(
                 numLines, sizeof(cacheLine));
-        cacheSet *currentSet = &cache.cache_sets[i];
+        cacheSet *currentSet = &cache.cacheSets[i];
+        currentSet->lruLine = NULL;
         currentSet->numLines = parameters.E;
+        currentSet->lineIndexOrder = (uInt*) calloc(numLines, sizeof(uInt));
 
         /* result: ABSOLUTELY CANNOT USE REFERENCES/ALIASES WHEN ALLOCATING
          * MEMORY */
-//        currentSet.cache_lines = (cacheLine*) calloc(
+//        currentSet.cacheLines = (cacheLine*) calloc(
 //                numLines, sizeof(cacheLine));
 
-        cacheLine *currentLines = currentSet->cache_lines;
+        cacheLine *currentLines = currentSet->cacheLines;
 
         for (int j = 0; j < numLines; j++) {
             cacheLine* currentLine = &currentLines[j];
@@ -391,7 +425,7 @@ traceInstruction getTraceInstruction(char *rawTraceInstruction) {
  */
 char* getTraceInstructionString(traceInstruction *parsedTraceInstruction) {
     char* outputTraceInstruction = (char*) calloc(1, MAX_STRING_LENGTH);
-    //int outputTracePtr = 0;
+    int outputTracePtr = 0;
 
     /* first, set the first character to the type of operation */
 //    outputTraceInstruction[outputTracePtr] = parsedTraceInstruction->operation;
@@ -483,7 +517,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     }
 
     int counterIndex = 0;
-    //int newCounterIndex = 0;
+    int newCounterIndex = 0;
     /* dubious...does fgets() clears the pointer each time... */
     while (fgets(instructionInput, MAX_STRING_LENGTH, traceFile) != NULL) {
         //FIXME
@@ -506,6 +540,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
         /* test the formatted input line */
         if (PRINT_DEBUG) {
             printf("after formatting: %s\n", outputInstructionString);
+            printf("\n");
         }
 
         enum traceOperation operation = parsedInstruction.operation;
@@ -647,7 +682,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
                 printf("\n\n");
             }
         } else {
-            if (PRINT_DEBUG) {
+            if (SKIP_INSTRUCTION_DEBUG) {
                 printf("Skipped 'I' instruction load\n");
 
                 strcat(finalOutput[counterIndex],
@@ -670,7 +705,7 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
         }
 
         /* prints out the corresponding line stored in the final output */
-        if (PRINT_DEBUG) {
+        if (FINAL_OUTPUT_DEBUG) {
             printf("counter index: %d\n", counterIndex);
             printf("(old) final output line: %s\n", finalOutput[counterIndex]);
             printf("(new) final output line: %s\n", outputInstructionString);
@@ -687,8 +722,12 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
         /* includes the 'I' instruction */
         //counterIndex++;
 
-        if (PRINT_DEBUG) {
+        if (SKIP_INSTRUCTION_DEBUG) {
             printEntireCache(cache, parameters);
+        } else {
+            if (PRINT_DEBUG && (operation != I)) {
+                printEntireCache(cache, parameters);
+            }
         }
     }
 
@@ -721,7 +760,7 @@ void updateLRUCacheLine(cacheSet *set, cacheParameters parameters) {
     /* since cache lines are used sequentially, the next LRU line should the
      * one after the previous LRU line */
     uInt lruLineIndex = set->lruLineIndex;
-    set->lruLine = &set->cache_lines[(lruLineIndex + 1) % numLines];
+    set->lruLine = &set->cacheLines[(lruLineIndex + 1) % numLines];
 }
 
 cacheAddress getCacheAddress(rawCacheAddress rawAddress,
@@ -756,15 +795,16 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
                                       traceInstruction *parsedInstruction) {
     cacheSetIndex setIndex = address.setIndex;
     cacheTag tag = address.tag;
-    cacheSet *set = &cache.cache_sets[setIndex];
+    cacheSet *set = &cache.cacheSets[setIndex];
 
     //enum traceOperation operation = parsedInstruction->operation;
 
     int numLines = parameters.E;
     enum cacheHitMiss hitMiss = miss;
     bool eviction = true;
-    for (int i = 0; i < numLines; i++) {
-        cacheLine *currentCacheLine = &set->cache_lines[i];
+    cacheLine *currentCacheLine;
+    for (uInt i = 0; i < numLines; i++) {
+        currentCacheLine = &set->cacheLines[i];
 
         /* maybe should have created constants, but 1 used for valid bit
          * when checking for hit */
@@ -784,6 +824,10 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
                         break;
                     }
                 }
+
+                if (hitMiss == hit) {
+                    break;
+                }
             }
         } else {
             /* no eviction when there are still unused lines (since valid
@@ -795,6 +839,31 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
 
     if (hitMiss == hit) {
         summary->numHits++;
+
+        /* need to update LRU line and line index order */
+        uInt updateLineIndex = currentCacheLine->lineIndex;
+
+        uInt numLinesInUse = set->numLinesInUse;
+
+        /* move all indices after updateLineIndex back by one so we can add
+         * updateLineIndex at the end of the line index order */
+        for (uInt i = updateLineIndex; i < (numLinesInUse - 1); i++) {
+            set->lineIndexOrder[i] = set->lineIndexOrder[i + 1];
+        }
+
+        set->lineIndexOrder[numLinesInUse - 1] = updateLineIndex;
+
+        if (PRINT_DEBUG) {
+            printf("---------------------------------\n");
+            printf("HIT section:\n");
+            printf("num lines in use: %u\n", numLinesInUse);
+            printf("update line index: %u\n", updateLineIndex);
+            printf("---------------------------------\n");
+        }
+
+        /* set the NEW LRU line -- hit only if the set is NONEMPTY */
+        set->lruLineIndex = set->lineIndexOrder[0];
+        set->lruLine = &set->cacheLines[set->lruLineIndex];
     } else { // hitMiss == miss
         summary->numMisses++;
 
@@ -826,13 +895,13 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
             int numAddresses = parameters.B;
             lruLine->block = calloc(numAddresses, sizeof(cacheBlock));
 
-            cacheBlock *currentBlock = lruLine->block;
+            cacheBlock *lruBlock = lruLine->block;
 
             /* relabel addresses to the specified cache line */
             rawCacheAddress initialAddress = address.rawAddress
                                              - address.blockOffset;
             for (uInt i = 0; i < numAddresses; i++) {
-                currentBlock[i] = initialAddress + i;
+                lruBlock[i] = initialAddress + i;
             }
 
             lruLine->tag = address.tag;
@@ -844,7 +913,7 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
             cacheLine *lineEdit;
             uInt numLinesInUse = set->numLinesInUse;
 
-            lineEdit = &set->cache_lines[numLinesInUse];
+            lineEdit = &set->cacheLines[numLinesInUse];
             //lineEdit->lineIndex = numLinesInUse;
 
             //TODO: edit valid bit and block addresses
@@ -873,6 +942,10 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
                 set->lruLine = lineEdit;
                 set->lruLineIndex = numLinesInUse;
             }
+
+            /* need to update line index order for miss (just append to end,
+             * and just use the number of lines in use) */
+            set->lineIndexOrder[numLinesInUse] = numLinesInUse;
 
             set->numLinesInUse++;
         }
