@@ -149,7 +149,7 @@ typedef struct {
  * Function definitions
  * - comment out personal printSummary() function
  */
-//void printSummary(int hits, int misses, int evictions);
+void printSummary(int hits, int misses, int evictions);
 void printUsage(char** argv);
 void printArgs(int argc, char** argv);
 void printParsedTraceInstruction(traceInstruction instruction);
@@ -164,7 +164,8 @@ traceInstruction getTraceInstruction(char *rawTraceInstruction);
 char* getTraceInstructionString(traceInstruction *parsedTraceInstruction);
 void parseTraceFile(cacheParameters parameters, entireCache cache,
                     cacheSummary *summary);
-void updateLRUCacheLine(cacheSet *set, cacheParameters parameters);
+void updateLRUCacheLineHit(cacheSet *set, cacheLine *currentCacheLine);
+void updateLRUCacheLineEviction(cacheSet *set);
 cacheAddress getCacheAddress(rawCacheAddress rawAddress,
                              cacheParameters parameters);
 cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
@@ -183,16 +184,15 @@ cacheSummary initializeCacheSummary();
 /*
  * Custom printSummary() function for debugging on local machine
  */
-//void printSummary(int hits, int misses, int evictions) {
-//    if (PRINT_DEBUG) {
-//        printf("Summary:\n");
-//    }
-//
-//    printf("hits: %d\n", hits);
-//    printf("misses: %d\n", misses);
-//    printf("evictions: %d\n", evictions);
-//}
+void printSummary(int hits, int misses, int evictions) {
+    if (PRINT_DEBUG) {
+        printf("Summary:\n");
+    }
 
+    printf("hits: %d\n", hits);
+    printf("misses: %d\n", misses);
+    printf("evictions: %d\n", evictions);
+}
 
 /*
  * Print usage info
@@ -761,13 +761,78 @@ void parseTraceFile(cacheParameters parameters, entireCache cache,
     }
 }
 
-void updateLRUCacheLine(cacheSet *set, cacheParameters parameters) {
-    int numLines = parameters.E;
+void updateLRUCacheLineHit(cacheSet *set, cacheLine *currentCacheLine) {
+    /* need to update LRU line and line index order */
+    uInt updateLineIndex = currentCacheLine->lineIndex;
+
+    uInt numLinesInUse = set->numLinesInUse;
+
+    uInt lineOrderIndex = -1;
+    for (uInt i = 0; i < (numLinesInUse - 1); i++) {
+        if (set->lineIndexOrder[i] == updateLineIndex) {
+            lineOrderIndex = i;
+            break;
+        }
+    }
+
+    /* move all indices after updateLineIndex back by one so we can add
+     * updateLineIndex at the end of the line index order */
+    /* need to find where the line index is in the order array first...
+     * from above*/
+    for (uInt i = lineOrderIndex; i < (numLinesInUse - 1); i++) {
+        set->lineIndexOrder[i] = set->lineIndexOrder[i + 1];
+    }
+
+    set->lineIndexOrder[numLinesInUse - 1] = updateLineIndex;
+
+    if (PRINT_DEBUG) {
+        printf("---------------------------------\n");
+        printf("HIT section:\n");
+        printf("num lines in use: %u\n", numLinesInUse);
+        printf("update line index: %u\n", updateLineIndex);
+        printf("---------------------------------\n");
+    }
+
+    /* set the NEW LRU line -- hit only if the set is NONEMPTY */
+    set->lruLineIndex = set->lineIndexOrder[0];
+    set->lruLine = &set->cacheLines[set->lruLineIndex];
+}
+
+void updateLRUCacheLineEviction(cacheSet *set) {
+    //int numLines = parameters.E;
+    uInt numLinesInUse = set->numLinesInUse;
 
     /* since cache lines are used sequentially, the next LRU line should the
      * one after the previous LRU line */
-    uInt lruLineIndex = set->lruLineIndex;
-    set->lruLine = &set->cacheLines[(lruLineIndex + 1) % numLines];
+    /* EDIT: only when all the lines are not used up yet is above true, need
+     * to shift the line order otherwise... */
+
+//    uInt lruLineIndex = set->lruLineIndex;
+//    set->lruLine = &set->cacheLines[(lruLineIndex + 1) % numLines];
+
+    /* move all indices after updateLineIndex back by one so we can add
+     * updateLineIndex at the end of the line index order */
+    /* need to shift everything back one and move the LRU index to the very
+     * end */
+    uInt updateLineIndex = set->lineIndexOrder[0];
+
+    for (uInt i = 0; i < (numLinesInUse - 1); i++) {
+        set->lineIndexOrder[i] = set->lineIndexOrder[i + 1];
+    }
+
+    set->lineIndexOrder[numLinesInUse - 1] = updateLineIndex;
+
+    if (PRINT_DEBUG) {
+        printf("---------------------------------\n");
+        printf("EVICTION section:\n");
+        printf("num lines in use: %u\n", numLinesInUse);
+        printf("update line index: %u\n", updateLineIndex);
+        printf("---------------------------------\n");
+    }
+
+    /* set the NEW LRU line -- hit only if the set is NONEMPTY */
+    set->lruLineIndex = set->lineIndexOrder[0];
+    set->lruLine = &set->cacheLines[set->lruLineIndex];
 }
 
 cacheAddress getCacheAddress(rawCacheAddress rawAddress,
@@ -847,40 +912,7 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
     if (hitMiss == hit) {
         summary->numHits++;
 
-        /* need to update LRU line and line index order */
-        uInt updateLineIndex = currentCacheLine->lineIndex;
-
-        uInt numLinesInUse = set->numLinesInUse;
-
-        uInt lineOrderIndex = -1;
-        for (uInt i = 0; i < (numLinesInUse - 1); i++) {
-            if (set->lineIndexOrder[i] == updateLineIndex) {
-                lineOrderIndex = i;
-                break;
-            }
-        }
-
-        /* move all indices after updateLineIndex back by one so we can add
-         * updateLineIndex at the end of the line index order */
-        /* need to find where the line index is in the order array first...
-         * from above*/
-        for (uInt i = lineOrderIndex; i < (numLinesInUse - 1); i++) {
-            set->lineIndexOrder[i] = set->lineIndexOrder[i + 1];
-        }
-
-        set->lineIndexOrder[numLinesInUse - 1] = updateLineIndex;
-
-        if (PRINT_DEBUG) {
-            printf("---------------------------------\n");
-            printf("HIT section:\n");
-            printf("num lines in use: %u\n", numLinesInUse);
-            printf("update line index: %u\n", updateLineIndex);
-            printf("---------------------------------\n");
-        }
-
-        /* set the NEW LRU line -- hit only if the set is NONEMPTY */
-        set->lruLineIndex = set->lineIndexOrder[0];
-        set->lruLine = &set->cacheLines[set->lruLineIndex];
+        updateLRUCacheLineHit(set, currentCacheLine);
     } else { // hitMiss == miss
         summary->numMisses++;
 
@@ -924,7 +956,7 @@ cacheHitEvictionPair loadStoreAddress(entireCache cache, cacheAddress address,
             lruLine->tag = address.tag;
             lruLine->numAddresses = numAddresses;
 
-            updateLRUCacheLine(set, parameters);
+            updateLRUCacheLineEviction(set);
         } else { /* maybe need to account store WITH eviction and other
  * instructions WITHOUT eviction separately -- don't do anything to store? */
             cacheLine *lineEdit;
