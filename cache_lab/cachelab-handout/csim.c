@@ -7,7 +7,7 @@
 
 /* cause of the error...MAKE SURE TO SET A DECENT STRING LENGTH */
 #define MAX_STRING_LENGTH 50
-#define MAX_NUM_LINES_INPUT 700
+#define MAX_NUM_LINES_INPUT 268000 // from 700
 #define IDE_DEBUG false
 #define PRINT_DEBUG false
 #define FINAL_OUTPUT_DEBUG false

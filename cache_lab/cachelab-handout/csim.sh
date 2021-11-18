@@ -32,8 +32,18 @@ gcc -o csim_test main.c
 # 4rth (index 3) OK
 #./csim_test -v -s 2 -E 1 -b 3 -t traces/trans.trace
 
-# 5th (index 4)
-./csim_test -v -s 2 -E 2 -b 3 -t traces/trans.trace
+# 5th (index 4) OK
+#./csim_test -v -s 2 -E 2 -b 3 -t traces/trans.trace
+
+# 6th (index 5) OK
+#./csim_test -v -s 2 -E 4 -b 3 -t traces/trans.trace
+
+# 7th (index 6) OK
+#./csim_test -v -s 5 -E 1 -b 5 -t traces/trans.trace
+
+# FINAL ONE
+# 8th (index 7)
+./csim_test -v -s 5 -E 1 -b 5 -t traces/long.trace
 
 # find differences (verbose)
 
