@@ -149,7 +149,7 @@ typedef struct {
  * Function definitions
  * - comment out personal printSummary() function
  */
-void printSummary(int hits, int misses, int evictions);
+//void printSummary(int hits, int misses, int evictions);
 void printUsage(char** argv);
 void printArgs(int argc, char** argv);
 void printParsedTraceInstruction(traceInstruction instruction);
@@ -184,15 +184,15 @@ cacheSummary initializeCacheSummary();
 /*
  * Custom printSummary() function for debugging on local machine
  */
-void printSummary(int hits, int misses, int evictions) {
-    if (PRINT_DEBUG) {
-        printf("Summary:\n");
-    }
-
-    printf("hits: %d\n", hits);
-    printf("misses: %d\n", misses);
-    printf("evictions: %d\n", evictions);
-}
+//void printSummary(int hits, int misses, int evictions) {
+//    if (PRINT_DEBUG) {
+//        printf("Summary:\n");
+//    }
+//
+//    printf("hits: %d\n", hits);
+//    printf("misses: %d\n", misses);
+//    printf("evictions: %d\n", evictions);
+//}
 
 /*
  * Print usage info
