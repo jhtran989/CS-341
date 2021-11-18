@@ -9,7 +9,7 @@
 #define MAX_STRING_LENGTH 50
 #define MAX_NUM_LINES_INPUT 700
 #define IDE_DEBUG false
-#define PRINT_DEBUG true
+#define PRINT_DEBUG false
 #define FINAL_OUTPUT_DEBUG false
 #define SKIP_INSTRUCTION_DEBUG false
 
