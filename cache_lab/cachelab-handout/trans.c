@@ -13,9 +13,9 @@
  * ID: 101821704
  */ 
 #include <stdio.h>
-#include "cachelab.h"
-
 #include <stdlib.h>
+#include <stdbool.h>
+#include "cachelab.h"
 
 int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 
@@ -98,7 +98,7 @@ void trans_64_64(int M, int N, int A[N][M], int B[M][N])
 /*
  * trans - A simple baseline transpose function, not optimized for the cache.
  */
-char trans_32_32_desc[] = "Optimized transpose for 64 x 64 (M = 64, N = 64)";
+char trans_32_32_desc[] = "Optimized transpose for 32 x 32 (M = 32, N = 32)";
 void trans_32_32(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
@@ -108,13 +108,32 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
     int blockSize = 8;
     int reducedMatrixSize = blockSize * (M / blockSize);
 
+    bool diagonal = false;
+    int diag_index;
+
     /* Blocking in block size of 8 x 8 */
+    /* Changed from original i that indexes the entire matrix size to just
+     * the block size */
     for (kk = 0; kk < reducedMatrixSize; kk += blockSize) {
         for (jj = 0; jj < reducedMatrixSize; jj += blockSize) {
-            for (i = 0; i < M; i++) {
+            for (i = kk; i < kk + blockSize; i++) {
                 for (j = jj; j < jj + blockSize; j++) {
-                    tmp = A[i][j];
-                    B[j][i] = tmp;
+                    if (i != j) {
+                        B[j][i] = A[i][j];
+//                        tmp = A[i][j];
+//                        B[j][i] = tmp;
+                    } else {
+                        tmp = A[i][j];
+                        diag_index = i;
+                        diagonal = true;
+                    }
+                }
+
+                /* instead of missing B[j][i], we leave it at the end of the
+                 * row */
+                if (diagonal) {
+                    B[diag_index][diag_index] = tmp;
+                    diagonal = false;
                 }
             }
         }
