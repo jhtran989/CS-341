@@ -103,7 +103,7 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
     //int k;
-    int kk, jj; /* remove k indexing -- not needed for transpose */
+    int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
     //int sum;
     int blockSize = 8;
     int reducedMatrixSize = blockSize * (M / blockSize);
@@ -114,10 +114,10 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
     /* Blocking in block size of 8 x 8 */
     /* Changed from original i that indexes the entire matrix size to just
      * the block size */
-    for (kk = 0; kk < reducedMatrixSize; kk += blockSize) {
-        for (jj = 0; jj < reducedMatrixSize; jj += blockSize) {
-            for (i = kk; i < kk + blockSize; i++) {
-                for (j = jj; j < jj + blockSize; j++) {
+    for (blockColumnIndex = 0; blockColumnIndex < reducedMatrixSize; blockColumnIndex += blockSize) {
+        for (blockRowIndex = 0; blockRowIndex < reducedMatrixSize; blockRowIndex += blockSize) {
+            for (i = blockRowIndex; i < blockRowIndex + blockSize; i++) {
+                for (j = blockColumnIndex; j < blockColumnIndex + blockSize; j++) {
                     if (i != j) {
                         B[j][i] = A[i][j];
 //                        tmp = A[i][j];
