@@ -96,6 +96,49 @@ void trans_64_64(int M, int N, int A[N][M], int B[M][N])
 }
 
 /*
+ * trans - A simple baseline transpose function, not optimized for the cache.
+ */
+char trans_32_32_desc[] = "Optimized transpose for 64 x 64 (M = 64, N = 64)";
+void trans_32_32(int M, int N, int A[N][M], int B[M][N])
+{
+    int i, j, tmp;
+    //int k;
+    int kk, jj; /* remove k indexing -- not needed for transpose */
+    //int sum;
+    int blockSize = 8;
+    int reducedMatrixSize = blockSize * (M / blockSize);
+
+    /* Blocking in block size of 8 x 8 */
+    for (kk = 0; kk < reducedMatrixSize; kk += blockSize) {
+        for (jj = 0; jj < reducedMatrixSize; jj += blockSize) {
+            for (i = 0; i < M; i++) {
+                for (j = jj; j < jj + blockSize; j++) {
+                    tmp = A[i][j];
+                    B[j][i] = tmp;
+                }
+            }
+        }
+    }
+
+    if (is_transpose(M, N, A, B)) {
+        printf("Success. Transpose of 64 x 64 worked.");
+    } else {
+        printf("ERROR...\n");
+        printf("Transpose of 64 x 64 did not work...\n");
+        printf("Exiting...\n");
+
+        exit(99);
+    }
+
+//    for (i = 0; i < N; i++) {
+//        for (j = 0; j < M; j++) {
+//            tmp = A[i][j];
+//            B[j][i] = tmp;
+//        }
+//    }
+}
+
+/*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
  *     evaluate each of the registered functions and summarize their
@@ -110,6 +153,7 @@ void registerFunctions()
     /* Register any additional transpose functions */
     registerTransFunction(trans, trans_desc);
     registerTransFunction(trans_64_64, trans_64_64_desc);
+    registerTransFunction(trans_32_32, trans_32_32_desc);
 }
 
 /* 
@@ -131,3 +175,14 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N])
     return 1;
 }
 
+/* Personal main to test correct transpose */
+int main() {
+//    int M = 64;
+//    int N = 64;
+
+    srand(0);
+    int A[MTest][NTest] = {rand()};
+    int B[MTest][NTest] = {rand()};
+
+    trans_64_64(64, 64, A, B);
+}
