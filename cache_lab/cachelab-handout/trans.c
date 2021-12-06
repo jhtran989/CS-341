@@ -65,7 +65,7 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
     int blockSize = 8;
 
     /* removed this below -- optimize for specific cases anyways */
-    //int reducedMatrixSize = blockSize * (M / blockSize);
+    int reducedMatrixSize = blockSize * (M / blockSize);
 
     bool diagonal = false;
     int diag_index;
@@ -73,9 +73,9 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
     /* Blocking in block size of 8 x 8 */
     /* Changed from original i that indexes the entire matrix size to just
      * the block size */
-    for (blockColumnIndex = 0; blockColumnIndex < M;
+    for (blockColumnIndex = 0; blockColumnIndex < reducedMatrixSize;
          blockColumnIndex += blockSize) {
-        for (blockRowIndex = 0; blockRowIndex < M;
+        for (blockRowIndex = 0; blockRowIndex < reducedMatrixSize;
              blockRowIndex += blockSize) {
             for (i = blockRowIndex; i < blockRowIndex + blockSize; i++) {
                 for (j = blockColumnIndex;
