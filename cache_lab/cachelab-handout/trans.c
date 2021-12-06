@@ -55,6 +55,73 @@ void trans(int M, int N, int A[N][M], int B[M][N])
 /*
  * trans - A simple baseline transpose function, not optimized for the cache.
  */
+char trans_32_32_desc[] = "Optimized transpose for 32 x 32 (M = 32, N = 32)";
+void trans_32_32(int M, int N, int A[N][M], int B[M][N])
+{
+    int i, j, tmp;
+    //int k;
+    int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
+    //int sum;
+    int blockSize = 8;
+
+    /* removed this below -- optimize for specific cases anyways */
+    //int reducedMatrixSize = blockSize * (M / blockSize);
+
+    bool diagonal = false;
+    int diag_index;
+
+    /* Blocking in block size of 8 x 8 */
+    /* Changed from original i that indexes the entire matrix size to just
+     * the block size */
+    for (blockColumnIndex = 0; blockColumnIndex < M;
+         blockColumnIndex += blockSize) {
+        for (blockRowIndex = 0; blockRowIndex < M;
+             blockRowIndex += blockSize) {
+            for (i = blockRowIndex; i < blockRowIndex + blockSize; i++) {
+                for (j = blockColumnIndex;
+                     j < blockColumnIndex + blockSize; j++) {
+                    if (i != j) {
+                        B[j][i] = A[i][j];
+//                        tmp = A[i][j];
+//                        B[j][i] = tmp;
+                    } else {
+                        tmp = A[i][j];
+                        diag_index = i;
+                        diagonal = true;
+                    }
+                }
+
+                /* instead of missing B[j][i], we leave it at the end of the
+                 * row */
+                if (diagonal) {
+                    B[diag_index][diag_index] = tmp;
+                    diagonal = false;
+                }
+            }
+        }
+    }
+
+    if (is_transpose(M, N, A, B)) {
+        printf("Success. Transpose of 64 x 64 worked.");
+    } else {
+        printf("ERROR...\n");
+        printf("Transpose of 64 x 64 did not work...\n");
+        printf("Exiting...\n");
+
+        exit(99);
+    }
+
+//    for (i = 0; i < N; i++) {
+//        for (j = 0; j < M; j++) {
+//            tmp = A[i][j];
+//            B[j][i] = tmp;
+//        }
+//    }
+}
+
+/*
+ * trans - A simple baseline transpose function, not optimized for the cache.
+ */
 char trans_64_64_desc[] = "Optimized transpose for 64 x 64 (M = 64, N = 64)";
 void trans_64_64(int M, int N, int A[N][M], int B[M][N])
 {
@@ -96,68 +163,6 @@ void trans_64_64(int M, int N, int A[N][M], int B[M][N])
 }
 
 /*
- * trans - A simple baseline transpose function, not optimized for the cache.
- */
-char trans_32_32_desc[] = "Optimized transpose for 32 x 32 (M = 32, N = 32)";
-void trans_32_32(int M, int N, int A[N][M], int B[M][N])
-{
-    int i, j, tmp;
-    //int k;
-    int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
-    //int sum;
-    int blockSize = 8;
-    int reducedMatrixSize = blockSize * (M / blockSize);
-
-    bool diagonal = false;
-    int diag_index;
-
-    /* Blocking in block size of 8 x 8 */
-    /* Changed from original i that indexes the entire matrix size to just
-     * the block size */
-    for (blockColumnIndex = 0; blockColumnIndex < reducedMatrixSize; blockColumnIndex += blockSize) {
-        for (blockRowIndex = 0; blockRowIndex < reducedMatrixSize; blockRowIndex += blockSize) {
-            for (i = blockRowIndex; i < blockRowIndex + blockSize; i++) {
-                for (j = blockColumnIndex; j < blockColumnIndex + blockSize; j++) {
-                    if (i != j) {
-                        B[j][i] = A[i][j];
-//                        tmp = A[i][j];
-//                        B[j][i] = tmp;
-                    } else {
-                        tmp = A[i][j];
-                        diag_index = i;
-                        diagonal = true;
-                    }
-                }
-
-                /* instead of missing B[j][i], we leave it at the end of the
-                 * row */
-                if (diagonal) {
-                    B[diag_index][diag_index] = tmp;
-                    diagonal = false;
-                }
-            }
-        }
-    }
-
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 64 x 64 worked.");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 64 x 64 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
-
-//    for (i = 0; i < N; i++) {
-//        for (j = 0; j < M; j++) {
-//            tmp = A[i][j];
-//            B[j][i] = tmp;
-//        }
-//    }
-}
-
-/*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
  *     evaluate each of the registered functions and summarize their
@@ -171,8 +176,8 @@ void registerFunctions()
 
     /* Register any additional transpose functions */
     registerTransFunction(trans, trans_desc);
-    registerTransFunction(trans_64_64, trans_64_64_desc);
     registerTransFunction(trans_32_32, trans_32_32_desc);
+    registerTransFunction(trans_64_64, trans_64_64_desc);
 }
 
 /* 
