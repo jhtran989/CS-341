@@ -276,7 +276,7 @@ char trans_64_64_diag_desc[] = "Optimized transpose for 64 x 64 diagonal "
                                "(M = 64, N = 64)";
 void trans_64_64_diag(int M, int N, int A[N][M], int B[M][N])
 {
-    int i, j, tmp;
+    //int i, j, tmp;
     //int k;
     int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
     //int sum;
@@ -285,8 +285,8 @@ void trans_64_64_diag(int M, int N, int A[N][M], int B[M][N])
     /* removed this below -- optimize for specific cases anyways */
     //int reducedMatrixSize = blockSize * (M / blockSize);
 
-    bool diagonal = false;
-    int diag_index;
+    //bool diagonal = false;
+    //int diag_index;
 
     int diag_value_0;
     int diag_value_1;
@@ -444,7 +444,7 @@ char trans_64_64_L_diag_desc[] = "Optimized transpose for 64 x 64 "
                                  "L-shape diagonal (M = 64, N = 64)";
 void trans_64_64_L_diag(int M, int N, int A[N][M], int B[M][N])
 {
-    int i, j, tmp;
+    //int i, j, tmp;
     //int k;
     int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
     //int sum;
@@ -453,8 +453,8 @@ void trans_64_64_L_diag(int M, int N, int A[N][M], int B[M][N])
     /* removed this below -- optimize for specific cases anyways */
     //int reducedMatrixSize = blockSize * (M / blockSize);
 
-    bool diagonal = false;
-    int diag_index;
+//    bool diagonal = false;
+//    int diag_index;
 
     int l_value_0;
     int l_value_1;
@@ -619,7 +619,7 @@ char trans_64_64_zigzig_desc[] = "Optimized transpose for 64 x 64 "
                                  "zig-zag (M = 64, N = 64)";
 void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
 {
-    int i, j, tmp;
+    //int i, j, tmp;
     //int k;
     int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
     //int sum;
@@ -628,8 +628,8 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
     /* removed this below -- optimize for specific cases anyways */
     //int reducedMatrixSize = blockSize * (M / blockSize);
 
-    bool diagonal = false;
-    int diag_index;
+//    bool diagonal = false;
+//    int diag_index;
 
     int l_value_0;
     int l_value_1;
