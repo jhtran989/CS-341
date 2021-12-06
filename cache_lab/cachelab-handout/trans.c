@@ -101,15 +101,15 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
         }
     }
 
-    if (is_transpose(M, N, A, B)) {
-        printf("Success. Transpose of 64 x 64 worked.");
-    } else {
-        printf("ERROR...\n");
-        printf("Transpose of 64 x 64 did not work...\n");
-        printf("Exiting...\n");
-
-        exit(99);
-    }
+//    if (is_transpose(M, N, A, B)) {
+//        printf("Success. Transpose of 64 x 64 worked.");
+//    } else {
+//        printf("ERROR...\n");
+//        printf("Transpose of 64 x 64 did not work...\n");
+//        printf("Exiting...\n");
+//
+//        exit(99);
+//    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
@@ -176,8 +176,8 @@ void registerFunctions()
 
     /* Register any additional transpose functions */
     registerTransFunction(trans, trans_desc);
-    registerTransFunction(trans_64_64, trans_64_64_desc);
     registerTransFunction(trans_32_32, trans_32_32_desc);
+    registerTransFunction(trans_64_64, trans_64_64_desc);
 }
 
 /* 
