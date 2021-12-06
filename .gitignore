@@ -66,6 +66,7 @@ scratch.c
 trans_main.c
 main.c
 main_copy.c
+test_make.c
 CMakeLists.txt
 cmake-build-debug
 
