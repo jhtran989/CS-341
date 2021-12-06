@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include "cachelab.h"
 
+#include <stdlib.h>
+
 int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 
 /* 
@@ -57,25 +59,26 @@ char trans_64_64_desc[] = "Optimized transpose for 64 x 64 (M = 64, N = 64)";
 void trans_64_64(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
-    int k, kk, jj;  /* remove k indexing -- not needed for transpose */
-    int sum;
+    //int k;
+    int kk, jj; /* remove k indexing -- not needed for transpose */
+    //int sum;
     int blockSize = 8;
     int reducedMatrixSize = blockSize * (M / blockSize);
 
     /* Blocking in block size of 8 x 8 */
-    for (int kk = 0; kk < reducedMatrixSize; kk += blockSize) {
-        for (int jj = 0; jj < reducedMatrixSize; jj += blockSize) {
-            for (int i = 0; i < M; i++) {
-                for (int j = jj; j < jj + blockSize; j++) {
-                    temp = A[i][j];
-                    B[j][i] = temp;
+    for (kk = 0; kk < reducedMatrixSize; kk += blockSize) {
+        for (jj = 0; jj < reducedMatrixSize; jj += blockSize) {
+            for (i = 0; i < M; i++) {
+                for (j = jj; j < jj + blockSize; j++) {
+                    tmp = A[i][j];
+                    B[j][i] = tmp;
                 }
             }
         }
     }
 
     if (is_transpose(M, N, A, B)) {
-        printf("Success. Transpose of 64 x 64 worked.")
+        printf("Success. Transpose of 64 x 64 worked.");
     } else {
         printf("ERROR...\n");
         printf("Transpose of 64 x 64 did not work...\n");
