@@ -174,15 +174,3 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N])
     }
     return 1;
 }
-
-/* Personal main to test correct transpose */
-int main() {
-//    int M = 64;
-//    int N = 64;
-
-    srand(0);
-    int A[MTest][NTest] = {rand()};
-    int B[MTest][NTest] = {rand()};
-
-    trans_64_64(64, 64, A, B);
-}
