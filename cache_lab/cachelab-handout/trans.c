@@ -17,6 +17,8 @@
 #include <stdbool.h>
 #include "cachelab.h"
 
+#define PRINT_DEBUG false
+
 #define SEPARATOR
 
 /* Function definitions/prototypes */
@@ -80,6 +82,19 @@ void trans(int M, int N, int A[N][M], int B[M][N])
     }
 }
 
+#define SEPARATOR
+
+/*
+ * Diagonal local variable in 32 x 32 and 61 x 67
+ *
+ * As a result of the thrashing when the row indexing of A and B match, we
+ * can store the diagonal element for the corresponding row and column of A
+ * and B, respectively. Since the row (8 ints since B = 32 bytes) of B was
+ * stored previously, setting the diagonal element for B would result in a
+ * hit (otherwise, setting B[i][i] = A[i][i] would evict the A row to store
+ * the corresponding B row).
+ */
+
 /*
  * trans - A simple baseline transpose function, not optimized for the cache.
  */
@@ -129,15 +144,17 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
         }
     }
 
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 64 x 64 worked.");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 64 x 64 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
+    if (PRINT_DEBUG) {
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
@@ -200,15 +217,17 @@ void trans_61_67(int M, int N, int A[N][M], int B[M][N])
         }
     }
 
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 61 x 67 worked.\n");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 61 x 67 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
+    if (PRINT_DEBUG) {
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 61 x 67 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 61 x 67 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
@@ -350,19 +369,20 @@ void trans_64_64_diag(int M, int N, int A[N][M], int B[M][N])
         }
     }
 
-    //FIXME
-//    printArrayA(A);
-//    printArrayB(B);
+    if (PRINT_DEBUG) {
+//        printArrayA(A);
+//        printArrayB(B);
 
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 64 x 64 worked.\n");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 64 x 64 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
@@ -522,19 +542,20 @@ void trans_64_64_L_diag(int M, int N, int A[N][M], int B[M][N])
         }
     }
 
-    //FIXME
-//    printArrayA(A);
-//    printArrayB(B);
+    if (PRINT_DEBUG) {
+//        printArrayA(A);
+//        printArrayB(B);
 
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 64 x 64 worked.\n");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 64 x 64 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
@@ -636,7 +657,9 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
     int l_value_2;
     int l_value_3;
     int l_value_4;
-    int diagonal_value; /* holds the extra diagonal values not in the L-shape */
+
+    /* holds the extra diagonal values not in the L-shape */
+    //int diagonal_value;
 
     /* Blocking in block size of 8 x 8 */
     /* Changed from original i that indexes the entire matrix size to just
@@ -650,7 +673,7 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
 
             /* diagonal value of A in row index 1 (not in L-shape) */
             /* same row of A to prevent a miss later on*/
-            diagonal_value = A[blockRowIndex + 1][blockColumnIndex + 1];
+            //diagonal_value = A[blockRowIndex + 1][blockColumnIndex + 1];
 
             l_value_2 = A[blockRowIndex + 2][blockColumnIndex];
             l_value_3 = A[blockRowIndex + 2][blockColumnIndex + 1];
@@ -671,12 +694,15 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
             B[blockColumnIndex + 2][blockRowIndex] =
                     A[blockRowIndex][blockColumnIndex + 2];
             /* diagonal value of A in row index 1 (not in L-shape) */
-            //l_value_4 = A[blockRowIndex + 1][blockColumnIndex + 1];
+            l_value_4 = A[blockRowIndex + 1][blockColumnIndex + 1];
 
             /* Section 2 */
             B[blockColumnIndex + 1][blockRowIndex] =
                     A[blockRowIndex][blockColumnIndex + 1];
-            B[blockColumnIndex + 1][blockRowIndex + 1] = diagonal_value;
+
+            //B[blockColumnIndex + 1][blockRowIndex + 1] = diagonal_value;
+            B[blockColumnIndex + 1][blockRowIndex + 1] = l_value_4;
+
             B[blockColumnIndex + 1][blockRowIndex + 2] = l_value_3;
 
             /* Section 3 */
@@ -692,24 +718,27 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
             B[blockColumnIndex + 2][blockRowIndex + 3] =
                     A[blockRowIndex + 3][blockColumnIndex + 2];
 
-            diagonal_value = A[blockRowIndex + 3][blockColumnIndex + 3];
-            B[blockColumnIndex + 3][blockRowIndex + 3] = diagonal_value;
+            //diagonal_value = A[blockRowIndex + 3][blockColumnIndex + 3];
+            //B[blockColumnIndex + 3][blockRowIndex + 3] = diagonal_value;
+            l_value_0 = A[blockRowIndex + 3][blockColumnIndex + 3];
+            B[blockColumnIndex + 3][blockRowIndex + 3] = l_value_0;
         }
     }
 
-    //FIXME
-//    printArrayA(A);
-//    printArrayB(B);
+    if (PRINT_DEBUG) {
+//        printArrayA(A);
+//        printArrayB(B);
 
-//    if (is_transpose(M, N, A, B)) {
-//        printf("Success. Transpose of 64 x 64 worked.\n");
-//    } else {
-//        printf("ERROR...\n");
-//        printf("Transpose of 64 x 64 did not work...\n");
-//        printf("Exiting...\n");
-//
-//        exit(99);
-//    }
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
 
 //    for (i = 0; i < N; i++) {
 //        for (j = 0; j < M; j++) {
