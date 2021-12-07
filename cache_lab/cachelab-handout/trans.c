@@ -28,6 +28,8 @@ void trans_61_67(int M, int N, int A[N][M], int B[M][N]);
 void trans_64_64_diag(int M, int N, int A[N][M], int B[M][N]);
 void trans_64_64_L_diag(int M, int N, int A[N][M], int B[M][N]);
 void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N]);
+void trans_64_64_dynamic_inner_blocking(int M, int N, int A[N][M],
+                                        int B[M][N]);
 
 #define SEPARATOR
 
@@ -48,12 +50,14 @@ int is_transpose(int M, int N, int A[N][M], int B[M][N]);
 char transpose_submit_desc[] = "Transpose submission";
 void transpose_submit(int M, int N, int A[N][M], int B[M][N])
 {
+    /* Good enough to check just M (and not N) since all the cases have
+     * different M values */
     if (M == 32) {
         trans_32_32(M, N, A, B);
     } else if (M == 61) {
         trans_61_67(M, N, A, B);
     } else if (M == 64) {
-        trans_64_64_L_diag(M, N, A, B);
+        trans_64_64_dynamic_inner_blocking(M, N, A, B);
     } else {
         printf("ERROR...Unknown case for M = %d\n", M);
         printf("EXITING...\n");
