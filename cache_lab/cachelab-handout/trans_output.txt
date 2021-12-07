@@ -1,0 +1,134 @@
+rm -rf *.o
+rm -f *.tar
+rm -f csim
+rm -f test-trans tracegen
+rm -f trace.all trace.f*
+rm -f .csim_results .marker
+gcc -g -Wall -Werror -std=c99 -m64 -o csim csim.c cachelab.c -lm 
+gcc -g -Wall -Werror -std=c99 -m64 -O0 -c trans.c
+gcc -g -Wall -Werror -std=c99 -m64 -o test-trans test-trans.c cachelab.c trans.o 
+gcc -g -Wall -Werror -std=c99 -m64 -O0 -o tracegen tracegen.c trans.o cachelab.c
+# Generate a handin tar file each time you compile
+tar -cvf jtran989-handin.tar  csim.c trans.c 
+csim.c
+trans.c
+M = 32, N = 32
+
+Function 0 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 0 (Transpose submission): hits:1766, misses:287, evictions:255
+
+Function 1 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 1 (Simple row-wise scan transpose): hits:870, misses:1183, evictions:1151
+
+Function 2 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 2 (Optimized transpose for 32 x 32 (M = 32, N = 32)): hits:1766, misses:287, evictions:255
+
+Function 3 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 3 (Optimized transpose for 61 x 67 (M = 61, N = 67)): hits:912, misses:1141, evictions:1109
+
+Function 4 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 4 (Optimized transpose for 64 x 64 diagonal (M = 64, N = 64)): hits:1602, misses:451, evictions:419
+
+Function 5 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 5 (Optimized transpose for 64 x 64 L-shape diagonal (M = 64, N = 64)): hits:1638, misses:415, evictions:383
+
+Function 6 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 6 (Optimized transpose for 64 x 64 zig-zag (M = 64, N = 64)): hits:1638, misses:415, evictions:383
+
+Summary for official submission (func 0): correctness=1 misses=287
+
+TEST_TRANS_RESULTS=1:287
+M = 61, N = 67
+
+Function 0 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 0 (Transpose submission): hits:6370, misses:1809, evictions:1777
+
+Function 1 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 1 (Simple row-wise scan transpose): hits:3756, misses:4423, evictions:4391
+
+Function 2 (7 total)
+Step 1: Validating and generating memory traces
+Validation error at function 2! Run ./tracegen -M 61 -N 67 -F 2 for details.
+Skipping performance evaluation for this function.
+
+Function 3 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 3 (Optimized transpose for 61 x 67 (M = 61, N = 67)): hits:6370, misses:1809, evictions:1777
+
+Function 4 (7 total)
+Step 1: Validating and generating memory traces
+Validation error at function 4! Run ./tracegen -M 61 -N 67 -F 4 for details.
+Skipping performance evaluation for this function.
+
+Function 5 (7 total)
+Step 1: Validating and generating memory traces
+Validation error at function 5! Run ./tracegen -M 61 -N 67 -F 5 for details.
+Skipping performance evaluation for this function.
+
+Function 6 (7 total)
+Step 1: Validating and generating memory traces
+Validation error at function 6! Run ./tracegen -M 61 -N 67 -F 6 for details.
+Skipping performance evaluation for this function.
+
+Summary for official submission (func 0): correctness=1 misses=1809
+
+TEST_TRANS_RESULTS=1:1809
+M = 64, N = 64
+
+Function 0 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 0 (Transpose submission): hits:6562, misses:1635, evictions:1603
+
+Function 1 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 1 (Simple row-wise scan transpose): hits:3474, misses:4723, evictions:4691
+
+Function 2 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 2 (Optimized transpose for 32 x 32 (M = 32, N = 32)): hits:3562, misses:4635, evictions:4603
+
+Function 3 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 3 (Optimized transpose for 61 x 67 (M = 61, N = 67)): hits:3546, misses:4651, evictions:4619
+
+Function 4 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 4 (Optimized transpose for 64 x 64 diagonal (M = 64, N = 64)): hits:6402, misses:1795, evictions:1763
+
+Function 5 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 5 (Optimized transpose for 64 x 64 L-shape diagonal (M = 64, N = 64)): hits:6562, misses:1635, evictions:1603
+
+Function 6 (7 total)
+Step 1: Validating and generating memory traces
+Step 2: Evaluating performance (s=5, E=1, b=5)
+func 6 (Optimized transpose for 64 x 64 zig-zag (M = 64, N = 64)): hits:6562, misses:1635, evictions:1603
+
+Summary for official submission (func 0): correctness=1 misses=1635
+
+TEST_TRANS_RESULTS=1:1635
