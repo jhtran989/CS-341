@@ -748,6 +748,58 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
 //    }
 }
 
+char trans_64_64_default_desc[] = "Optimized transpose for 64 x 64 "
+                                  "default (M = 64, N = 64)";
+void trans_64_64_default(int M, int N, int A[N][M], int B[M][N]) {
+    int blockSize;
+    int r;
+    int c;
+    int v0;
+    int v1;
+    int v2;
+    int v3;
+    int v4;
+
+    blockSize = 4;
+    for (r = 0; r < N; r += blockSize) {
+        for (c = 0; c < M; c += blockSize) {
+/*Elements in A[r][], A[r+1][], A[r+2][] are assigned to the variables for use throughout this loop
+This is becuase we are only allowed to modify the second matrix B but not the matrix A */
+            v0 = A[r][c];
+            v1 = A[r + 1][c];
+            v2 = A[r + 2][c];
+            v3 = A[r + 2][c + 1];
+            v4 = A[r + 2][c + 2];
+//Elements in B[c+3][] are assigned
+            B[c + 3][r] = A[r][c + 3];
+            B[c + 3][r + 1] = A[r + 1][c + 3];
+            B[c + 3][r + 2] = A[r + 2][c + 3];
+//Elements in B[c+2][] are assigned
+            B[c + 2][r] = A[r][c + 2];
+            B[c + 2][r + 1] = A[r + 1][c + 2];
+            B[c + 2][r + 2] = v4;
+            v4 = A[r + 1][c + 1];
+//Elements in B[c+1][] are assigned
+            B[c + 1][r] = A[r][c + 1];
+            B[c + 1][r + 1] = v4;
+            B[c + 1][r + 2] = v3;
+//Elements in B[c][] are assigned
+            B[c][r] = v0;
+            B[c][r + 1] = v1;
+            B[c][r + 2] = v2;
+//Elements in row A[r+3][] are assigned to the left out elements in B (where B has r+3)
+            B[c][r + 3] = A[r + 3][c];
+            B[c + 1][r + 3] = A[r + 3][c + 1];
+            B[c + 2][r + 3] = A[r + 3][c + 2];
+            v0 = A[r + 3][c + 3];
+//Finally, elements in row B[c+3][] are assigned
+            B[c + 3][r + 3] = v0;
+        }
+    }
+}
+
+#define SEPARATOR
+
 /*
  * registerFunctions - This function registers your transpose
  *     functions with the driver.  At runtime, the driver will
@@ -767,6 +819,9 @@ void registerFunctions()
     registerTransFunction(trans_64_64_diag, trans_64_64_diag_desc);
     registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
     registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
+
+    //FIXME
+    registerTransFunction(trans_64_64_default, trans_64_64_default_desc);
 }
 
 /* 
