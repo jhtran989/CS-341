@@ -748,6 +748,7 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
 //    }
 }
 
+//FIXME: Remove
 char trans_64_64_default_desc[] = "Optimized transpose for 64 x 64 "
                                   "default (M = 64, N = 64)";
 void trans_64_64_default(int M, int N, int A[N][M], int B[M][N]) {
@@ -798,6 +799,72 @@ This is becuase we are only allowed to modify the second matrix B but not the ma
     }
 }
 
+//FIXME: Another remove
+char trans_64_64_another_default_desc[] = "Optimized transpose for 64 x 64 "
+                                          "another default (M = 64, N = 64)";
+void trans_64_64_another_default(int M, int N, int A[N][M], int B[M][N]) {
+    int t0, t1, t2, t3, t4, t5, t6, t7;
+    for (int i = 0; i < N; i += 8) {
+        for (int j = 0; j < M; j += 8) {
+            for (int k = i; k < i + 4; k++) {
+                t0 = A[k][j];
+                t1 = A[k][j + 1];
+                t2 = A[k][j + 2];
+                t3 = A[k][j + 3];
+                t4 = A[k][j + 4];
+                t5 = A[k][j + 5];
+                t6 = A[k][j + 6];
+                t7 = A[k][j + 7];
+                B[j][k] = t0;
+                B[j + 1][k] = t1;
+                B[j + 2][k] = t2;
+                B[j + 3][k] = t3;
+                B[j + 0][k + 4] = t7;
+                B[j + 1][k + 4] = t6;
+                B[j + 2][k + 4] = t5;
+                B[j + 3][k + 4] = t4;
+            }
+            for (int h = 0; h < 4; h++) {
+                t0 = A[i + 4][j + 3 - h];
+                t1 = A[i + 5][j + 3 - h];
+                t2 = A[i + 6][j + 3 - h];
+                t3 = A[i + 7][j + 3 - h];
+                t4 = A[i + 4][j + 4 + h];
+                t5 = A[i + 5][j + 4 + h];
+                t6 = A[i + 6][j + 4 + h];
+                t7 = A[i + 7][j + 4 + h];
+                B[j + 4 + h][i + 0] = B[j + 3 - h][i + 4];
+                B[j + 4 + h][i + 1] = B[j + 3 - h][i + 5];
+                B[j + 4 + h][i + 2] = B[j + 3 - h][i + 6];
+                B[j + 4 + h][i + 3] = B[j + 3 - h][i + 7];
+                B[j + 3 - h][i + 4] = t0;
+                B[j + 3 - h][i + 5] = t1;
+                B[j + 3 - h][i + 6] = t2;
+                B[j + 3 - h][i + 7] = t3;
+                B[j + 4 + h][i + 4] = t4;
+                B[j + 4 + h][i + 5] = t5;
+                B[j + 4 + h][i + 6] = t6;
+                B[j + 4 + h][i + 7] = t7;
+            }
+        }
+    }
+
+    if (PRINT_DEBUG) {
+//        printArrayA(A);
+//        printArrayB(B);
+
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
+}
+
 #define SEPARATOR
 
 /*
@@ -820,8 +887,10 @@ void registerFunctions()
     registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
     registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
 
-    //FIXME
-    registerTransFunction(trans_64_64_default, trans_64_64_default_desc);
+    //FIXME: remove
+    //registerTransFunction(trans_64_64_default, trans_64_64_default_desc);
+    registerTransFunction(trans_64_64_another_default,
+                          trans_64_64_another_default_desc);
 }
 
 /* 
