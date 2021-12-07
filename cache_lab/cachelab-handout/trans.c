@@ -96,14 +96,16 @@ void trans(int M, int N, int A[N][M], int B[M][N])
  */
 
 /*
- * trans - A simple baseline transpose function, not optimized for the cache.
+ * 32 x 32 - blocking with block size of 8
+ *
+ * block index is done column-wise (indexing the row for each column)
  */
 char trans_32_32_desc[] = "Optimized transpose for 32 x 32 (M = 32, N = 32)";
 void trans_32_32(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
-    //int k;
-    int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
+    //int k; /* remove k indexing -- not needed for transpose */
+    int blockRowIndex, blockColumnIndex;
     //int sum;
     int blockSize = 8;
 
@@ -165,14 +167,20 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
 }
 
 /*
- * trans - A simple baseline transpose function, not optimized for the cache.
+ * 61 x 67 - blocking with block size of 16
+ *
+ * block index is done column-wise (indexing the row for each column)
+ *
+ * This is pretty similar to the blocking for 32 x 32, but with a larger block
+ * size and making sure that the indexing doesn't go out of bounds. A comment
+ * is made below in the code about this.
  */
 char trans_61_67_desc[] = "Optimized transpose for 61 x 67 (M = 61, N = 67)";
 void trans_61_67(int M, int N, int A[N][M], int B[M][N])
 {
     int i, j, tmp;
-    //int k;
-    int blockRowIndex, blockColumnIndex; /* remove k indexing -- not needed for transpose */
+    //int k; /* remove k indexing -- not needed for transpose */
+    int blockRowIndex, blockColumnIndex;
     //int sum;
     int blockSize = 16;
 
@@ -748,179 +756,158 @@ void trans_64_64_zigzag(int M, int N, int A[N][M], int B[M][N])
 //    }
 }
 
-//FIXME: Remove
-char trans_64_64_default_desc[] = "Optimized transpose for 64 x 64 "
-                                  "default (M = 64, N = 64)";
-void trans_64_64_default(int M, int N, int A[N][M], int B[M][N]) {
-    int blockSize;
-    int r;
-    int c;
-    int v0;
-    int v1;
-    int v2;
-    int v3;
-    int v4;
+/*
+ * 64 x 64 - dynamic inner blocking
+ *
+ * Couldn't find a way to optimize the pattern used above, so a different
+ * approach was used to make the most of each row of A/B retrieved into the
+ * cache. Even though a block size of 8 was used this time, we are really
+ * splitting it up into chunks of 4 x 4 (partially, but more details will be
+ * provided below).
+ *
+ * If we label the chunks of A within the 8 x 8 block into 4 x 4 chunks
+ * mentioned above (total of 4 chunks):
+ *
+ * A chunks:
+ * 0 1
+ * 2 3
+ *
+ * B chunks:
+ * 0 1
+ * 2 3
+ *
+ * Where each chunk contains a 4 x 4 piece of the original 8 chunks. Like
+ * before, we are indexing the blocks by row, then column. From here, we can
+ * execute the transpose of each block in 3 separate phases (labeled phase 0,
+ * 1, and 2):
+ *
+ * Phase 0
+ * A chunks: 0, 1
+ * B chunks: 0, 1
+ * Basically, we can move the two top-most chunks of A onto the two top-most
+ * chunks of B -- layering the rows of A along the columns of B. Inspiration
+ * was taken from the fact that the cache is good at retrieving rows of the
+ * block (with B = 32, all 8 ints in either A or B can fit in a line/set --
+ * direct mapped -- of the cache). So, chunk 0 of B (same layout as A) will
+ * be transposed correctly by layering the values column-wise from the
+ * row-wise values of A. However, the values in chunk 1 of A will similarly
+ * be laid out column-wise in chunk 1 of B, but only temporarily (moved in
+ * the next phase). Since the same rows of B are used as from moving chunk 0
+ * of A into chunk 0 of B, it helps to reduce the number of misses.
+ *
+ * Phase 1
+ * A chunks: 2
+ * B chunks: 1, 2
+ * This is where things get a little tricky. We first store the bottom half
+ * part of a column in chunk 2 of A in four of the local variables. Then we
+ * store a row of the temporary values placed in B (previous phase) into the
+ * other four variables -- this time, row-wise to reduce the amount of misses.
+ * Since we initially stored those values column-wise to match the transpose,
+ * they should be in the correct positions when transferring over to chunk 2
+ * of B. It should be noted that those temporary values are now in the right
+ * place in B (along the corresponding column of B instead of the temporary
+ * row of B). However, before moving the temporary values, we can move the
+ * values in chunk 2 of A column-wise into chunk 1 of B row-wise to complete
+ * that chunk of the transpose.
+ *
+ * Phase 2
+ * A chunks: 3
+ * B chunks: 3
+ * Now, all we have left is chunk 3 of A and B. The procedure follows
+ * like the usual transpose algorithm: take the rows of A and store them in
+ * the corresponding columns of B (i.e., B[j][i] = A[i][j] for this entire
+ * chunk). After this, we should be done with the current block.
+ *
+ * Repeat with the rest of the blocks and we should be done.
+ *
+ * In hindsight, this a pretty clever algorithm that takes the blocks and
+ * splits them up into smaller chunks. Also, it temporarily stores values
+ * when the opportunity for misses is relatively low (i.e., along the rows of
+ * B that were used previously). It makes use of spatial locality (storing
+ * during phase 0 along rows of B) and temporal locality (the same rows of B
+ * are used for storage of entire rows of A -- 4 rows of B instead of
+ * extending down to all 8 rows).
+ *
+ * Note: managed to use all 12 local variables allotted to us
+ * Another note: it would have been better to label the chunks as A0,... and
+ * B0,... to differentiate which matrix the chunks belonged to...
+ */
+char trans_64_64_dynamic_inner_blocking_desc[] =
+        "Optimized transpose for 64 x 64 dynamic inner blocking "
+        "(M = 64, N = 64)";
+void trans_64_64_dynamic_inner_blocking(int M, int N, int A[N][M],
+                                        int B[M][N]) {
+    int blockRowIndex, blockColumnIndex, i, j;
 
-    blockSize = 4;
-    for (r = 0; r < N; r += blockSize) {
-        for (c = 0; c < M; c += blockSize) {
-/*Elements in A[r][], A[r+1][], A[r+2][] are assigned to the variables for use throughout this loop
-This is becuase we are only allowed to modify the second matrix B but not the matrix A */
-            v0 = A[r][c];
-            v1 = A[r + 1][c];
-            v2 = A[r + 2][c];
-            v3 = A[r + 2][c + 1];
-            v4 = A[r + 2][c + 2];
-//Elements in B[c+3][] are assigned
-            B[c + 3][r] = A[r][c + 3];
-            B[c + 3][r + 1] = A[r + 1][c + 3];
-            B[c + 3][r + 2] = A[r + 2][c + 3];
-//Elements in B[c+2][] are assigned
-            B[c + 2][r] = A[r][c + 2];
-            B[c + 2][r + 1] = A[r + 1][c + 2];
-            B[c + 2][r + 2] = v4;
-            v4 = A[r + 1][c + 1];
-//Elements in B[c+1][] are assigned
-            B[c + 1][r] = A[r][c + 1];
-            B[c + 1][r + 1] = v4;
-            B[c + 1][r + 2] = v3;
-//Elements in B[c][] are assigned
-            B[c][r] = v0;
-            B[c][r + 1] = v1;
-            B[c][r + 2] = v2;
-//Elements in row A[r+3][] are assigned to the left out elements in B (where B has r+3)
-            B[c][r + 3] = A[r + 3][c];
-            B[c + 1][r + 3] = A[r + 3][c + 1];
-            B[c + 2][r + 3] = A[r + 3][c + 2];
-            v0 = A[r + 3][c + 3];
-//Finally, elements in row B[c+3][] are assigned
-            B[c + 3][r + 3] = v0;
-        }
-    }
-}
+    /* Local variables to hold up to 8 values from A and/or B */
+    int v0, v1, v2, v3, v4, v5, v6, v7;
 
-//FIXME: Another remove
-char trans_64_64_another_default_desc[] = "Optimized transpose for 64 x 64 "
-                                          "another default (M = 64, N = 64)";
-void trans_64_64_another_default(int M, int N, int A[N][M], int B[M][N]) {
-    int t0, t1, t2, t3, t4, t5, t6, t7;
-    for (int i = 0; i < N; i += 8) {
-        for (int j = 0; j < M; j += 8) {
-            for (int k = i; k < i + 4; k++) {
-                t0 = A[k][j];
-                t1 = A[k][j + 1];
-                t2 = A[k][j + 2];
-                t3 = A[k][j + 3];
-                t4 = A[k][j + 4];
-                t5 = A[k][j + 5];
-                t6 = A[k][j + 6];
-                t7 = A[k][j + 7];
-                B[j][k] = t0;
-                B[j + 1][k] = t1;
-                B[j + 2][k] = t2;
-                B[j + 3][k] = t3;
-                B[j + 0][k + 4] = t7;
-                B[j + 1][k + 4] = t6;
-                B[j + 2][k + 4] = t5;
-                B[j + 3][k + 4] = t4;
-            }
-            for (int h = 0; h < 4; h++) {
-                t0 = A[i + 4][j + 3 - h];
-                t1 = A[i + 5][j + 3 - h];
-                t2 = A[i + 6][j + 3 - h];
-                t3 = A[i + 7][j + 3 - h];
-                t4 = A[i + 4][j + 4 + h];
-                t5 = A[i + 5][j + 4 + h];
-                t6 = A[i + 6][j + 4 + h];
-                t7 = A[i + 7][j + 4 + h];
-                B[j + 4 + h][i + 0] = B[j + 3 - h][i + 4];
-                B[j + 4 + h][i + 1] = B[j + 3 - h][i + 5];
-                B[j + 4 + h][i + 2] = B[j + 3 - h][i + 6];
-                B[j + 4 + h][i + 3] = B[j + 3 - h][i + 7];
-                B[j + 3 - h][i + 4] = t0;
-                B[j + 3 - h][i + 5] = t1;
-                B[j + 3 - h][i + 6] = t2;
-                B[j + 3 - h][i + 7] = t3;
-                B[j + 4 + h][i + 4] = t4;
-                B[j + 4 + h][i + 5] = t5;
-                B[j + 4 + h][i + 6] = t6;
-                B[j + 4 + h][i + 7] = t7;
-            }
-        }
-    }
+    /* Note: unlike the other methods above, the block size of 8 had to be
+     * hard coded in since all local variables were used up... */
+    for (blockRowIndex = 0; blockRowIndex < N; blockRowIndex += 8) {
+        for (blockColumnIndex = 0; blockColumnIndex < M; blockColumnIndex += 8){
+            /* Phase 1 */
+            for (i = blockRowIndex; i < blockRowIndex + 4; ++i){
+                /* stores a row of A into the 8 local variables */
+                v0 = A[i][blockColumnIndex];
+                v1 = A[i][blockColumnIndex + 1];
+                v2 = A[i][blockColumnIndex + 2];
+                v3 = A[i][blockColumnIndex + 3];
+                v4 = A[i][blockColumnIndex + 4];
+                v5 = A[i][blockColumnIndex + 5];
+                v6 = A[i][blockColumnIndex + 6];
+                v7 = A[i][blockColumnIndex + 7];
 
-    if (PRINT_DEBUG) {
-//        printArrayA(A);
-//        printArrayB(B);
-
-        if (is_transpose(M, N, A, B)) {
-            printf("Success. Transpose of 64 x 64 worked.\n");
-        } else {
-            printf("ERROR...\n");
-            printf("Transpose of 64 x 64 did not work...\n");
-            printf("Exiting...\n");
-
-            exit(99);
-        }
-    }
-}
-
-char trans_64_64_alternate_default_desc[] = "Optimized transpose for 64 x 64 "
-                                            "alternate default (M = 64, N = 64)";
-void trans_64_64_alternate_default(int M, int N, int A[N][M], int B[M][N]) {
-    int i, j, x, y;
-    int x1, x2, x3, x4, x5, x6, x7, x8;
-
-    for (i = 0; i < N; i += 8) {
-        for (j = 0; j < M; j += 8){
-            for (x = i; x < i + 4; ++x){
-                x1 = A[x][j];
-                x2 = A[x][j+1];
-                x3 = A[x][j+2];
-                x4 = A[x][j+3];
-                x5 = A[x][j+4];
-                x6 = A[x][j+5];
-                x7 = A[x][j+6];
-                x8 = A[x][j+7];
-
-                B[j][x] = x1;
-                B[j+1][x] = x2;
-                B[j+2][x] = x3;
-                B[j+3][x] = x4;
-                B[j][x+4] = x5;
-                B[j+1][x+4] = x6;
-                B[j+2][x+4] = x7;
-                B[j+3][x+4] = x8;
+                /* store chunks A0 and A1 into chunks B0 and B1 */
+                B[blockColumnIndex][i] = v0;
+                B[blockColumnIndex + 1][i] = v1;
+                B[blockColumnIndex + 2][i] = v2;
+                B[blockColumnIndex + 3][i] = v3;
+                B[blockColumnIndex][i + 4] = v4;
+                B[blockColumnIndex + 1][i + 4] = v5;
+                B[blockColumnIndex + 2][i + 4] = v6;
+                B[blockColumnIndex + 3][i + 4] = v7;
             }
 
-            for (y = j; y < j + 4; ++y){
-                x1 = A[i+4][y];
-                x2 = A[i+5][y];
-                x3 = A[i+6][y];
-                x4 = A[i+7][y];
-                x5 = B[y][i+4];
-                x6 = B[y][i+5];
-                x7 = B[y][i+6];
-                x8 = B[y][i+7];
+            /* Phase 2 */
+            for (j = blockColumnIndex; j < blockColumnIndex + 4; ++j){
+                /* stores a column from chunk A2 and a row from chunk B1
+                 * (from previous phase) */
+                v0 = A[blockRowIndex + 4][j];
+                v1 = A[blockRowIndex + 5][j];
+                v2 = A[blockRowIndex + 6][j];
+                v3 = A[blockRowIndex + 7][j];
+                v4 = B[j][blockRowIndex + 4];
+                v5 = B[j][blockRowIndex + 5];
+                v6 = B[j][blockRowIndex + 6];
+                v7 = B[j][blockRowIndex + 7];
 
-                B[y][i+4] = x1;
-                B[y][i+5] = x2;
-                B[y][i+6] = x3;
-                B[y][i+7] = x4;
-                B[y+4][i] = x5;
-                B[y+4][i+1] = x6;
-                B[y+4][i+2] = x7;
-                B[y+4][i+3] = x8;}
+                /* store column from chunk A2 into row from chunk B1
+                 * and store the temporary values in the row of chunk B1 into
+                 * the corresponding row in chunk B2 */
+                B[j][blockRowIndex + 4] = v0;
+                B[j][blockRowIndex + 5] = v1;
+                B[j][blockRowIndex + 6] = v2;
+                B[j][blockRowIndex + 7] = v3;
+                B[j + 4][blockRowIndex] = v4;
+                B[j + 4][blockRowIndex + 1] = v5;
+                B[j + 4][blockRowIndex + 2] = v6;
+                B[j + 4][blockRowIndex + 3] = v7;}
 
-            for (x = i + 4; x < i + 8; ++x){
-                x1 = A[x][j+4];
-                x2 = A[x][j+5];
-                x3 = A[x][j+6];
-                x4 = A[x][j+7];
-                B[j+4][x] = x1;
-                B[j+5][x] = x2;
-                B[j+6][x] = x3;
-                B[j+7][x] = x4;
+            /* Phase 3 */
+            for (i = blockRowIndex + 4; i < blockRowIndex + 8; ++i){
+                /* stores a row from chunk A3 */
+                v0 = A[i][blockColumnIndex + 4];
+                v1 = A[i][blockColumnIndex + 5];
+                v2 = A[i][blockColumnIndex + 6];
+                v3 = A[i][blockColumnIndex + 7];
+
+                /* store the row from chunk A3 into the corresponding column
+                 * from chunk B3 */
+                B[blockColumnIndex + 4][i] = v0;
+                B[blockColumnIndex + 5][i] = v1;
+                B[blockColumnIndex + 6][i] = v2;
+                B[blockColumnIndex + 7][i] = v3;
             }
         }
     }
@@ -931,10 +918,10 @@ void trans_64_64_alternate_default(int M, int N, int A[N][M], int B[M][N]) {
 //        printArrayB(B);
 
         if (is_transpose(M, N, A, B)) {
-            printf("Success. Transpose of 64 x 64 worked.\n");
+            printf("Success. Transpose of 64 i 64 worked.\n");
         } else {
             printf("ERROR...\n");
-            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Transpose of 64 i 64 did not work...\n");
             printf("Exiting...\n");
 
             exit(99);
@@ -960,16 +947,11 @@ void registerFunctions()
     registerTransFunction(trans, trans_desc);
     registerTransFunction(trans_32_32, trans_32_32_desc);
     registerTransFunction(trans_61_67, trans_61_67_desc);
-//    registerTransFunction(trans_64_64_diag, trans_64_64_diag_desc);
-//    registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
-//    registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
-
-    //FIXME: remove
-    //registerTransFunction(trans_64_64_default, trans_64_64_default_desc);
-//    registerTransFunction(trans_64_64_another_default,
-//                          trans_64_64_another_default_desc);
-    registerTransFunction(trans_64_64_alternate_default,
-                          trans_64_64_alternate_default_desc);
+    registerTransFunction(trans_64_64_diag, trans_64_64_diag_desc);
+    registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
+    registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
+    registerTransFunction(trans_64_64_dynamic_inner_blocking,
+                          trans_64_64_dynamic_inner_blocking_desc);
 }
 
 /* 
