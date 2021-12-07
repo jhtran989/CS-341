@@ -178,6 +178,10 @@ void trans_32_32(int M, int N, int A[N][M], int B[M][N])
  * This is pretty similar to the blocking for 32 x 32, but with a larger block
  * size and making sure that the indexing doesn't go out of bounds. A comment
  * is made below in the code about this.
+ *
+ * As for the chosen block size, a variety of different sizes were tested and
+ * a block size of 16 just happened to fit under the threshold of 2000 misses
+ * (too bad it didn't work with the 64 x 64 case below...).
  */
 char trans_61_67_desc[] = "Optimized transpose for 61 x 67 (M = 61, N = 67)";
 void trans_61_67(int M, int N, int A[N][M], int B[M][N])
