@@ -865,6 +865,83 @@ void trans_64_64_another_default(int M, int N, int A[N][M], int B[M][N]) {
     }
 }
 
+char trans_64_64_alternate_default_desc[] = "Optimized transpose for 64 x 64 "
+                                            "alternate default (M = 64, N = 64)";
+void trans_64_64_alternate_default(int M, int N, int A[N][M], int B[M][N]) {
+    int i, j, x, y;
+    int x1, x2, x3, x4, x5, x6, x7, x8;
+
+    for (i = 0; i < N; i += 8) {
+        for (j = 0; j < M; j += 8){
+            for (x = i; x < i + 4; ++x){
+                x1 = A[x][j];
+                x2 = A[x][j+1];
+                x3 = A[x][j+2];
+                x4 = A[x][j+3];
+                x5 = A[x][j+4];
+                x6 = A[x][j+5];
+                x7 = A[x][j+6];
+                x8 = A[x][j+7];
+
+                B[j][x] = x1;
+                B[j+1][x] = x2;
+                B[j+2][x] = x3;
+                B[j+3][x] = x4;
+                B[j][x+4] = x5;
+                B[j+1][x+4] = x6;
+                B[j+2][x+4] = x7;
+                B[j+3][x+4] = x8;
+            }
+
+            for (y = j; y < j + 4; ++y){
+                x1 = A[i+4][y];
+                x2 = A[i+5][y];
+                x3 = A[i+6][y];
+                x4 = A[i+7][y];
+                x5 = B[y][i+4];
+                x6 = B[y][i+5];
+                x7 = B[y][i+6];
+                x8 = B[y][i+7];
+
+                B[y][i+4] = x1;
+                B[y][i+5] = x2;
+                B[y][i+6] = x3;
+                B[y][i+7] = x4;
+                B[y+4][i] = x5;
+                B[y+4][i+1] = x6;
+                B[y+4][i+2] = x7;
+                B[y+4][i+3] = x8;}
+
+            for (x = i + 4; x < i + 8; ++x){
+                x1 = A[x][j+4];
+                x2 = A[x][j+5];
+                x3 = A[x][j+6];
+                x4 = A[x][j+7];
+                B[j+4][x] = x1;
+                B[j+5][x] = x2;
+                B[j+6][x] = x3;
+                B[j+7][x] = x4;
+            }
+        }
+    }
+
+
+    if (PRINT_DEBUG) {
+//        printArrayA(A);
+//        printArrayB(B);
+
+        if (is_transpose(M, N, A, B)) {
+            printf("Success. Transpose of 64 x 64 worked.\n");
+        } else {
+            printf("ERROR...\n");
+            printf("Transpose of 64 x 64 did not work...\n");
+            printf("Exiting...\n");
+
+            exit(99);
+        }
+    }
+}
+
 #define SEPARATOR
 
 /*
@@ -883,14 +960,16 @@ void registerFunctions()
     registerTransFunction(trans, trans_desc);
     registerTransFunction(trans_32_32, trans_32_32_desc);
     registerTransFunction(trans_61_67, trans_61_67_desc);
-    registerTransFunction(trans_64_64_diag, trans_64_64_diag_desc);
-    registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
-    registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
+//    registerTransFunction(trans_64_64_diag, trans_64_64_diag_desc);
+//    registerTransFunction(trans_64_64_L_diag, trans_64_64_L_diag_desc);
+//    registerTransFunction(trans_64_64_zigzag, trans_64_64_zigzig_desc);
 
     //FIXME: remove
     //registerTransFunction(trans_64_64_default, trans_64_64_default_desc);
-    registerTransFunction(trans_64_64_another_default,
-                          trans_64_64_another_default_desc);
+//    registerTransFunction(trans_64_64_another_default,
+//                          trans_64_64_another_default_desc);
+    registerTransFunction(trans_64_64_alternate_default,
+                          trans_64_64_alternate_default_desc);
 }
 
 /* 
